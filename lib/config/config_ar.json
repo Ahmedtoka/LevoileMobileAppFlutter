@@ -1,0 +1,875 @@
+{
+  "HorizonLayout": [
+    {
+      "layout": "logo",
+      "showMenu": true,
+      "showSearch": true,
+      "showLogo": true
+    },
+    {
+      "layout": "categoryHighlight",
+      "size": 74,
+      "hideTitle": false,
+      "items": [
+        {
+          "category": "gid://shopify/Collection/474137264420",
+          "name": "وصل حديثاً",
+          "image": "",
+          "colors": [
+            "#A51E8C",
+            "#A51E8C"
+          ],
+          "originalColor": false,
+          "keepDefaultTitle": false,
+          "showDescription": false,
+          "productType": false,
+          "onSale": false,
+          "isFeatured": false
+        },
+        {
+          "category": "gid://shopify/Collection/470817538340",
+          "name": "طرح",
+          "image": "",
+          "colors": [
+            "#C2649E",
+            "#C2649E"
+          ],
+          "originalColor": false,
+          "keepDefaultTitle": false,
+          "showDescription": false,
+          "productType": false,
+          "onSale": false,
+          "isFeatured": false
+        },
+        {
+          "category": "gid://shopify/Collection/470818816292",
+          "name": "إزدال",
+          "image": "",
+          "colors": [
+            "#7A1568",
+            "#7A1568"
+          ],
+          "originalColor": false,
+          "keepDefaultTitle": false,
+          "showDescription": false,
+          "productType": false,
+          "onSale": false,
+          "isFeatured": false
+        },
+        {
+          "category": "gid://shopify/Collection/470818259236",
+          "name": "ملابس",
+          "image": "",
+          "colors": [
+            "#A51E8C",
+            "#A51E8C"
+          ],
+          "originalColor": false,
+          "keepDefaultTitle": false,
+          "showDescription": false,
+          "productType": false,
+          "onSale": false,
+          "isFeatured": false
+        },
+        {
+          "category": "gid://shopify/Collection/470818685220",
+          "name": "إكسسوارات",
+          "image": "",
+          "colors": [
+            "#C2649E",
+            "#C2649E"
+          ],
+          "originalColor": false,
+          "keepDefaultTitle": false,
+          "showDescription": false,
+          "productType": false,
+          "onSale": false,
+          "isFeatured": false
+        },
+        {
+          "category": "gid://shopify/Collection/482849980708",
+          "name": "الحج والعمرة",
+          "image": "",
+          "colors": [
+            "#7A1568",
+            "#7A1568"
+          ],
+          "originalColor": false,
+          "keepDefaultTitle": false,
+          "showDescription": false,
+          "productType": false,
+          "onSale": false,
+          "isFeatured": false
+        },
+        {
+          "category": "gid://shopify/Collection/470817636644",
+          "name": "كابات",
+          "image": "",
+          "colors": [
+            "#A51E8C",
+            "#A51E8C"
+          ],
+          "originalColor": false,
+          "keepDefaultTitle": false,
+          "showDescription": false,
+          "productType": false,
+          "onSale": false,
+          "isFeatured": false
+        },
+        {
+          "category": "gid://shopify/Collection/481128939812",
+          "name": "تخفيضات",
+          "image": "",
+          "colors": [
+            "#C2649E",
+            "#C2649E"
+          ],
+          "originalColor": false,
+          "keepDefaultTitle": false,
+          "showDescription": false,
+          "productType": false,
+          "onSale": false,
+          "isFeatured": false
+        }
+      ],
+      "line": false,
+      "marginLeft": 10.0,
+      "marginRight": 10.0,
+      "marginTop": 10.0,
+      "marginBottom": 10.0,
+      "paddingX": 0.0,
+      "paddingY": 0.0,
+      "marginX": 0.0,
+      "marginY": 0.0,
+      "hideTitle": false,
+      "noBackground": false,
+      "imageBorderStyle": "solid",
+      "imageSpacing": 0.0,
+      "labelFontSize": 14.0,
+      "horizontalItem": false,
+      "separateWidth": 24.0,
+      "gradientStyle": false
+    },
+    {
+      "name": "وصل حديثاً",
+      "image": "",
+      "category": "gid://shopify/Collection/474137264420",
+      "layout": "twoColumn",
+      "isSnapping": true,
+      "borderRadius": 3.0,
+      "hMargin": 6.0,
+      "useCircularRadius": true,
+      "useSort": false,
+      "showCategory": false,
+      "vMargin": 0.0,
+      "hPadding": 6.0,
+      "vPadding": 2.0,
+      "boxShadow": {
+        "blurRadius": 10.0,
+        "colorOpacity": 0.1,
+        "spreadRadius": 10.0,
+        "x": 0.0,
+        "y": 10.0
+      },
+      "cardDesign": "card",
+      "titleLine": 1,
+      "backgroundRadius": 10.0,
+      "showCountDown": false,
+      "onSale": false,
+      "rows": 1,
+      "columns": 3,
+      "imageRatio": 1.2,
+      "imageBoxfit": "cover",
+      "hidePrice": false,
+      "hideStore": false,
+      "hideTitle": false,
+      "enableRating": true,
+      "showStockStatus": true,
+      "hideEmptyProductListRating": false,
+      "showHeart": true,
+      "showCartButton": false,
+      "showCartIcon": true,
+      "showCartIconColor": false,
+      "cartIconRadius": 9.0,
+      "showQuantity": false,
+      "enableBottomAddToCart": false,
+      "showOnlyImage": false,
+      "showCartButtonWithQuantity": true,
+      "parallax": false,
+      "parallaxImageRatio": 1.2,
+      "hideEmptyProductLayout": true,
+      "productListItemHeight": 125.0,
+      "enableAutoSliding": false,
+      "productType": false
+    },
+    {
+      "name": "الأكثر مبيعاً",
+      "layout": "staggered",
+      "category": "gid://shopify/Collection/654030930212",
+      "isSnapping": false,
+      "image": "",
+      "borderRadius": 3.0,
+      "hMargin": 6.0,
+      "useCircularRadius": true,
+      "useSort": false,
+      "showCategory": false,
+      "vMargin": 0.0,
+      "hPadding": 6.0,
+      "vPadding": 2.0,
+      "cardDesign": "card",
+      "backgroundRadius": 10.0,
+      "showCountDown": false,
+      "onSale": false,
+      "rows": 1,
+      "columns": 3,
+      "imageRatio": 1.2,
+      "imageBoxfit": "cover",
+      "hidePrice": false,
+      "hideStore": false,
+      "hideTitle": false,
+      "enableRating": true,
+      "showStockStatus": true,
+      "hideEmptyProductListRating": false,
+      "showHeart": true,
+      "showCartButton": false,
+      "showCartIcon": true,
+      "showCartIconColor": false,
+      "cartIconRadius": 9.0,
+      "showQuantity": false,
+      "enableBottomAddToCart": false,
+      "showOnlyImage": false,
+      "showCartButtonWithQuantity": false,
+      "parallax": false,
+      "parallaxImageRatio": 1.2,
+      "hideEmptyProductLayout": true,
+      "productListItemHeight": 125.0,
+      "enableAutoSliding": true,
+      "productType": false,
+      "order": "desc",
+      "orderby": "title"
+    },
+    {
+      "name": "نزل دلوقتي",
+      "image": "",
+      "category": "gid://shopify/Collection/654031159588",
+      "layout": "twoColumn",
+      "isSnapping": true,
+      "borderRadius": 3.0,
+      "hMargin": 6.0,
+      "useCircularRadius": true,
+      "useSort": false,
+      "showCategory": false,
+      "vMargin": 0.0,
+      "hPadding": 6.0,
+      "vPadding": 2.0,
+      "boxShadow": {
+        "blurRadius": 10.0,
+        "colorOpacity": 0.1,
+        "spreadRadius": 10.0,
+        "x": 0.0,
+        "y": 10.0
+      },
+      "cardDesign": "card",
+      "titleLine": 1,
+      "backgroundRadius": 10.0,
+      "showCountDown": false,
+      "onSale": false,
+      "rows": 1,
+      "columns": 3,
+      "imageRatio": 1.2,
+      "imageBoxfit": "cover",
+      "hidePrice": false,
+      "hideStore": false,
+      "hideTitle": false,
+      "enableRating": true,
+      "showStockStatus": true,
+      "hideEmptyProductListRating": false,
+      "showHeart": true,
+      "showCartButton": false,
+      "showCartIcon": true,
+      "showCartIconColor": false,
+      "cartIconRadius": 9.0,
+      "showQuantity": false,
+      "enableBottomAddToCart": false,
+      "showOnlyImage": false,
+      "showCartButtonWithQuantity": true,
+      "parallax": false,
+      "parallaxImageRatio": 1.2,
+      "hideEmptyProductLayout": true,
+      "productListItemHeight": 125.0,
+      "enableAutoSliding": false,
+      "productType": false
+    },
+    {
+      "name": "إزدال",
+      "layout": "staggered",
+      "category": "gid://shopify/Collection/470818816292",
+      "isSnapping": false,
+      "image": "",
+      "borderRadius": 3.0,
+      "hMargin": 6.0,
+      "useCircularRadius": true,
+      "useSort": false,
+      "showCategory": false,
+      "vMargin": 0.0,
+      "hPadding": 6.0,
+      "vPadding": 2.0,
+      "cardDesign": "card",
+      "backgroundRadius": 10.0,
+      "showCountDown": false,
+      "onSale": false,
+      "rows": 1,
+      "columns": 3,
+      "imageRatio": 1.2,
+      "imageBoxfit": "cover",
+      "hidePrice": false,
+      "hideStore": false,
+      "hideTitle": false,
+      "enableRating": true,
+      "showStockStatus": true,
+      "hideEmptyProductListRating": false,
+      "showHeart": true,
+      "showCartButton": false,
+      "showCartIcon": true,
+      "showCartIconColor": false,
+      "cartIconRadius": 9.0,
+      "showQuantity": false,
+      "enableBottomAddToCart": false,
+      "showOnlyImage": false,
+      "showCartButtonWithQuantity": false,
+      "parallax": false,
+      "parallaxImageRatio": 1.2,
+      "hideEmptyProductLayout": true,
+      "productListItemHeight": 125.0,
+      "enableAutoSliding": true,
+      "productType": false,
+      "order": "desc",
+      "orderby": "title"
+    },
+    {
+      "name": "طرح",
+      "image": "",
+      "category": "gid://shopify/Collection/470817538340",
+      "layout": "twoColumn",
+      "isSnapping": true,
+      "borderRadius": 3.0,
+      "hMargin": 6.0,
+      "useCircularRadius": true,
+      "useSort": false,
+      "showCategory": false,
+      "vMargin": 0.0,
+      "hPadding": 6.0,
+      "vPadding": 2.0,
+      "boxShadow": {
+        "blurRadius": 10.0,
+        "colorOpacity": 0.1,
+        "spreadRadius": 10.0,
+        "x": 0.0,
+        "y": 10.0
+      },
+      "cardDesign": "card",
+      "titleLine": 1,
+      "backgroundRadius": 10.0,
+      "showCountDown": false,
+      "onSale": false,
+      "rows": 1,
+      "columns": 3,
+      "imageRatio": 1.2,
+      "imageBoxfit": "cover",
+      "hidePrice": false,
+      "hideStore": false,
+      "hideTitle": false,
+      "enableRating": true,
+      "showStockStatus": true,
+      "hideEmptyProductListRating": false,
+      "showHeart": true,
+      "showCartButton": false,
+      "showCartIcon": true,
+      "showCartIconColor": false,
+      "cartIconRadius": 9.0,
+      "showQuantity": false,
+      "enableBottomAddToCart": false,
+      "showOnlyImage": false,
+      "showCartButtonWithQuantity": true,
+      "parallax": false,
+      "parallaxImageRatio": 1.2,
+      "hideEmptyProductLayout": true,
+      "productListItemHeight": 125.0,
+      "enableAutoSliding": false,
+      "productType": false
+    },
+    {
+      "name": "ملابس",
+      "image": "",
+      "category": "gid://shopify/Collection/470818259236",
+      "layout": "twoColumn",
+      "isSnapping": true,
+      "borderRadius": 3.0,
+      "hMargin": 6.0,
+      "useCircularRadius": true,
+      "useSort": false,
+      "showCategory": false,
+      "vMargin": 0.0,
+      "hPadding": 6.0,
+      "vPadding": 2.0,
+      "boxShadow": {
+        "blurRadius": 10.0,
+        "colorOpacity": 0.1,
+        "spreadRadius": 10.0,
+        "x": 0.0,
+        "y": 10.0
+      },
+      "cardDesign": "card",
+      "titleLine": 1,
+      "backgroundRadius": 10.0,
+      "showCountDown": false,
+      "onSale": false,
+      "rows": 1,
+      "columns": 3,
+      "imageRatio": 1.2,
+      "imageBoxfit": "cover",
+      "hidePrice": false,
+      "hideStore": false,
+      "hideTitle": false,
+      "enableRating": true,
+      "showStockStatus": true,
+      "hideEmptyProductListRating": false,
+      "showHeart": true,
+      "showCartButton": false,
+      "showCartIcon": true,
+      "showCartIconColor": false,
+      "cartIconRadius": 9.0,
+      "showQuantity": false,
+      "enableBottomAddToCart": false,
+      "showOnlyImage": false,
+      "showCartButtonWithQuantity": true,
+      "parallax": false,
+      "parallaxImageRatio": 1.2,
+      "hideEmptyProductLayout": true,
+      "productListItemHeight": 125.0,
+      "enableAutoSliding": false,
+      "productType": false
+    }
+  ],
+  "PrivacyPoliciesPageUrlOrId": "https://inspireui.com/privacy/",
+  "MetaSeo": {
+    "app": {
+      "excludes": [
+        "checkout"
+      ],
+      "config": {
+        "author": "InspireUI",
+        "description": "All-In-One حلول وخدمات للهواتف المحمولة للشركات الناشئة والمطورين ورجال الأعمال والمزيد ...",
+        "keywords": [
+          "Flutter",
+          "Dart",
+          "SEO",
+          "Meta",
+          "Web",
+          "FluxStore",
+          "FluxBuilder"
+        ]
+      }
+    },
+    "routes": [
+      {
+        "route": "dashboard",
+        "config": {
+          "author": "InspireUI",
+          "description": "All-In-One حلول وخدمات للهواتف المحمولة للشركات الناشئة والمطورين ورجال الأعمال والمزيد ...",
+          "keywords": [
+            "Flutter",
+            "Dart",
+            "SEO",
+            "Meta",
+            "Web",
+            "FluxStore"
+          ]
+        }
+      }
+    ]
+  },
+  "Setting": {
+    "MainColor": "#A51E8C",
+    "ProductListLayout": "list",
+    "StickyHeader": false,
+    "saleColor": "#A51E8C",
+    "secondaryColor": "#A51E8C",
+    "TabBarConfig": {
+      "enable": true,
+      "showMinimize": false,
+      "isSafeArea": true,
+      "color": null,
+      "colorCart": "ffa51e8c",
+      "colorIcon": "ff7a7b7f",
+      "colorActiveIcon": "ffa51e8c",
+      "iconSize": 22.968195913186673,
+      "indicatorStyle": "material",
+      "showFloatingClip": true,
+      "showFloating": true,
+      "enableOnTop": false,
+      "enableDivider": true,
+      "radiusTopLeft": 0.0,
+      "radiusTopRight": 0.0,
+      "radiusBottomLeft": 0.0,
+      "radiusBottomRight": 0.0,
+      "paddingLeft": 0.0,
+      "paddingRight": 0.0,
+      "paddingBottom": 0.0,
+      "paddingTop": 0.0,
+      "marginTop": 0.0,
+      "marginBottom": 0.0,
+      "marginLeft": 0.0,
+      "marginRight": 0.0,
+      "bottomBarStyle": "static",
+      "TabBarIndicator": {
+        "height": 2.0,
+        "tabPosition": "bottom",
+        "topRightRadius": 2.0,
+        "topLeftRadius": 3.0,
+        "bottomRightRadius": 4.0,
+        "bottomLeftRadius": 4.0,
+        "color": "ffa51e8c",
+        "horizontalPadding": 0.0,
+        "verticalPadding": 0.0,
+        "strokeWidth": 0.0,
+        "radius": 5.0,
+        "distanceFromCenter": 3.0,
+        "paintingStyle": "fill"
+      },
+      "TabBarFloating": {
+        "position": 2,
+        "radius": 50.0,
+        "color": "ffa51e8c",
+        "location": "centerDocked",
+        "width": 50.0,
+        "height": 50.0,
+        "elevation": 2.0,
+        "floatingType": "rectangle",
+        "notchMargin": 4.0,
+        "isCoverMode": false
+      }
+    }
+  },
+  "TabBar": [
+    {
+      "layout": "storeLocator",
+      "title": "الفروع",
+      "url": "https://levoilestores.com/pages/our-branches",
+      "icon": "storefront",
+      "fontFamily": "MaterialIcons",
+      "pos": 100,
+      "defaultTab": false,
+      "fullscreen": false,
+      "showOriginalColor": false,
+      "key": "branch001"
+    },
+    {
+      "pos": 200,
+      "layout": "category",
+      "icon": "rectangle_grid_1x2",
+      "fontFamily": "CupertinoIcons",
+      "categoryLayout": "grouped",
+      "key": "hwu0rkrizt",
+      "remapCategories": [
+        {
+          "category": "gid://shopify/Collection/446745674033",
+          "name": "سمات",
+          "image": "https://cdn.shopify.com/s/files/1/0331/5230/3239/collections/fashion-PN7FSF5_350x500.jpg?v=1581920391"
+        },
+        {
+          "parent": "gid://shopify/Collection/446745674033",
+          "category": "gid://shopify/Collection/446745739569",
+          "name": "أكياس"
+        },
+        {
+          "parent": "gid://shopify/Collection/446745674033",
+          "category": "gid://shopify/Collection/446745641265",
+          "name": "ملابس"
+        },
+        {
+          "parent": "gid://shopify/Collection/446745674033",
+          "category": "gid://shopify/Collection/446745936177",
+          "name": "أحذية"
+        },
+        {
+          "category": "gid://shopify/Collection/446745444657",
+          "name": "نحيف"
+        },
+        {
+          "category": "gid://shopify/Collection/444187279665",
+          "name": "رجل"
+        }
+      ],
+      "defaultTab": false
+    },
+    {
+      "layout": "home",
+      "icon": "home",
+      "pos": 100,
+      "fontFamily": "CupertinoIcons",
+      "key": "p1q235ba14",
+      "defaultTab": true
+    },
+    {
+      "pos": 400,
+      "icon": "bag",
+      "layout": "cart",
+      "categoryLayout": "cart",
+      "key": "a2xts0oou6",
+      "fontFamily": "CupertinoIcons",
+      "defaultTab": false
+    },
+    {
+      "layout": "profile",
+      "fontFamily": "CupertinoIcons",
+      "pos": 500,
+      "key": "69jw5yx12d",
+      "icon": "person",
+      "defaultTab": false,
+      "settings": [
+        "lvCoupons",
+        "biometrics",
+        "wishlist",
+        "notifications",
+        "darkTheme",
+        "order",
+        "rating",
+        "lvPrivacy",
+        "lvReturn",
+        "lvAbout"
+      ],
+      "subGeneralSetting": {
+        "privacy": {
+          "webUrl": "https://inspireui.com/privacy",
+          "webViewMode": false,
+          "requiredLogin": false,
+          "enableForward": false,
+          "enableBackward": true,
+          "enableClose": false,
+          "script": ""
+        },
+        "about": {
+          "webUrl": "https://fluxbuilder.com",
+          "webViewMode": false,
+          "requiredLogin": false,
+          "enableForward": false,
+          "enableBackward": true,
+          "enableClose": false,
+          "script": ""
+        },
+        "web-shipping": {
+          "title": "سياسة الشحن",
+          "webUrl": "https://levoilestores.com/policies/shipping-policy",
+          "icon": "local_shipping",
+          "iconFontFamily": "MaterialIcons",
+          "webViewMode": true,
+          "requiredLogin": false,
+          "enableForward": false,
+          "enableBackward": true,
+          "enableClose": false,
+          "script": ""
+        }
+      },
+      "background": null,
+      "showBackground": false
+    }
+  ],
+  "searchSuggestion": [
+    "Here are some suggestions:",
+    "Print",
+    "T-Shirt",
+    "Jersey",
+    "Hoodie"
+  ],
+  "OnBoarding": {
+    "data": [
+      {
+        "title": "أهلاً بيكي في لوفوال",
+        "desc": "أزياء محتشمة منتقاة بعناية — طرح، عبايات، إزدال وأكتر.",
+        "image": "assets/images/fogg-delivery-1.png",
+        "background": "#FBEFF7"
+      },
+      {
+        "title": "تسوّقي بسهولة",
+        "desc": "اتصفحي التشكيلات، اختاري اللي يعجبك، واطلبي في ثواني.",
+        "image": "assets/images/fogg-uploading-1.png",
+        "background": "#F7EFFB"
+      },
+      {
+        "title": "الأناقة لحد عندك",
+        "desc": "دولابك المحتشم على بُعد لمسة.",
+        "image": "assets/images/fogg-order-completed.png",
+        "background": "#FFF2FA"
+      }
+    ]
+  },
+  "Drawer": {
+    "logo": "assets/images/logo.png",
+    "iconColor": "ffa51e8c",
+    "safeArea": true,
+    "enable": true,
+    "items": [
+      {
+        "type": "home",
+        "show": true
+      },
+      {
+        "type": "title-shop",
+        "show": true
+      },
+      {
+        "type": "category-newarrivals",
+        "show": true
+      },
+      {
+        "type": "category-summer",
+        "show": true
+      },
+      {
+        "type": "category-fashionwear",
+        "show": true
+      },
+      {
+        "type": "category-scarfs",
+        "show": true
+      },
+      {
+        "type": "category-innercaps",
+        "show": true
+      },
+      {
+        "type": "category-hajjumrah",
+        "show": true
+      },
+      {
+        "type": "category-accessories",
+        "show": true
+      },
+      {
+        "type": "category-isdal",
+        "show": true
+      },
+      {
+        "type": "category-sale",
+        "show": true
+      },
+      {
+        "type": "category-less200",
+        "show": true
+      },
+      {
+        "type": "title-info",
+        "show": true
+      },
+      {
+        "type": "web-contact",
+        "show": true
+      },
+      {
+        "type": "web-branches",
+        "show": true
+      },
+      {
+        "type": "web-returns",
+        "show": true
+      },
+      {
+        "type": "login",
+        "show": true
+      }
+    ],
+    "subDrawerItem": {
+      "title-shop": {
+        "title": "تسوّق"
+      },
+      "title-info": {
+        "title": "معلومات"
+      },
+      "category-newarrivals": {
+        "category": "gid://shopify/Collection/474137264420",
+        "title": "وصل حديثاً",
+        "icon": "new_releases",
+        "iconFontFamily": "MaterialIcons"
+      },
+      "category-summer": {
+        "category": "gid://shopify/Collection/641524465956",
+        "title": "تشكيلة الصيف",
+        "icon": "wb_sunny",
+        "iconFontFamily": "MaterialIcons"
+      },
+      "category-fashionwear": {
+        "category": "gid://shopify/Collection/642837479716",
+        "title": "أزياء",
+        "icon": "checkroom",
+        "iconFontFamily": "MaterialIcons"
+      },
+      "category-scarfs": {
+        "category": "gid://shopify/Collection/470817538340",
+        "title": "طرح",
+        "icon": "dry_cleaning",
+        "iconFontFamily": "MaterialIcons"
+      },
+      "category-innercaps": {
+        "category": "gid://shopify/Collection/470817636644",
+        "title": "كابات",
+        "icon": "face",
+        "iconFontFamily": "MaterialIcons"
+      },
+      "category-hajjumrah": {
+        "category": "gid://shopify/Collection/482849980708",
+        "title": "الحج والعمرة",
+        "icon": "mosque",
+        "iconFontFamily": "MaterialIcons"
+      },
+      "category-accessories": {
+        "category": "gid://shopify/Collection/470818685220",
+        "title": "إكسسوارات",
+        "icon": "diamond",
+        "iconFontFamily": "MaterialIcons"
+      },
+      "category-isdal": {
+        "category": "gid://shopify/Collection/470818816292",
+        "title": "إزدال",
+        "icon": "woman",
+        "iconFontFamily": "MaterialIcons"
+      },
+      "category-sale": {
+        "category": "gid://shopify/Collection/481128939812",
+        "title": "تخفيضات حتى ٧٠٪",
+        "icon": "local_offer",
+        "iconFontFamily": "MaterialIcons"
+      },
+      "category-less200": {
+        "category": "gid://shopify/Collection/642639560996",
+        "title": "أقل من ٢٠٠ جنيه",
+        "icon": "savings",
+        "iconFontFamily": "MaterialIcons"
+      },
+      "web-contact": {
+        "webUrl": "https://levoilestores.com/pages/contact",
+        "title": "اتصل بنا",
+        "icon": "call",
+        "iconFontFamily": "MaterialIcons",
+        "webViewMode": true,
+        "enableBackward": true
+      },
+      "web-branches": {
+        "webUrl": "https://levoilestores.com/pages/our-branches",
+        "title": "فروعنا",
+        "icon": "storefront",
+        "iconFontFamily": "MaterialIcons",
+        "webViewMode": true,
+        "enableBackward": true
+      },
+      "web-returns": {
+        "webUrl": "https://levoilestores.com/policies/refund-policy",
+        "title": "الاستبدال والاسترجاع",
+        "icon": "assignment_return",
+        "iconFontFamily": "MaterialIcons",
+        "webViewMode": true,
+        "enableBackward": true
+      }
+    }
+  }
+}

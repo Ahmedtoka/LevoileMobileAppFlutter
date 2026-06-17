@@ -1,0 +1,813 @@
+{
+ "HorizonLayout": [
+  {
+   "layout": "logo",
+   "showMenu": true,
+   "showSearch": true,
+   "showLogo": true,
+   "logoSize": 95
+  },
+  {
+   "layout": "categoryHighlight",
+   "size": 74,
+   "hideTitle": false,
+   "items": [
+    {
+     "category": "gid://shopify/Collection/474137264420",
+     "name": "New Arrivals",
+     "image": "",
+     "colors": [
+      "#A51E8C",
+      "#A51E8C"
+     ],
+     "originalColor": false,
+     "keepDefaultTitle": false,
+     "showDescription": false,
+     "productType": false,
+     "onSale": false,
+     "isFeatured": false
+    },
+    {
+     "category": "gid://shopify/Collection/470817538340",
+     "name": "Scarfs",
+     "image": "",
+     "colors": [
+      "#C2649E",
+      "#C2649E"
+     ],
+     "originalColor": false,
+     "keepDefaultTitle": false,
+     "showDescription": false,
+     "productType": false,
+     "onSale": false,
+     "isFeatured": false
+    },
+    {
+     "category": "gid://shopify/Collection/470818816292",
+     "name": "Isdal",
+     "image": "",
+     "colors": [
+      "#7A1568",
+      "#7A1568"
+     ],
+     "originalColor": false,
+     "keepDefaultTitle": false,
+     "showDescription": false,
+     "productType": false,
+     "onSale": false,
+     "isFeatured": false
+    },
+    {
+     "category": "gid://shopify/Collection/470818259236",
+     "name": "Clothing",
+     "image": "",
+     "colors": [
+      "#A51E8C",
+      "#A51E8C"
+     ],
+     "originalColor": false,
+     "keepDefaultTitle": false,
+     "showDescription": false,
+     "productType": false,
+     "onSale": false,
+     "isFeatured": false
+    },
+    {
+     "category": "gid://shopify/Collection/470818685220",
+     "name": "Accessories",
+     "image": "",
+     "colors": [
+      "#C2649E",
+      "#C2649E"
+     ],
+     "originalColor": false,
+     "keepDefaultTitle": false,
+     "showDescription": false,
+     "productType": false,
+     "onSale": false,
+     "isFeatured": false
+    },
+    {
+     "category": "gid://shopify/Collection/482849980708",
+     "name": "Hajj | Umrah",
+     "image": "",
+     "colors": [
+      "#7A1568",
+      "#7A1568"
+     ],
+     "originalColor": false,
+     "keepDefaultTitle": false,
+     "showDescription": false,
+     "productType": false,
+     "onSale": false,
+     "isFeatured": false
+    },
+    {
+     "category": "gid://shopify/Collection/470817636644",
+     "name": "Inner Caps",
+     "image": "",
+     "colors": [
+      "#A51E8C",
+      "#A51E8C"
+     ],
+     "originalColor": false,
+     "keepDefaultTitle": false,
+     "showDescription": false,
+     "productType": false,
+     "onSale": false,
+     "isFeatured": false
+    },
+    {
+     "category": "gid://shopify/Collection/481128939812",
+     "name": "Sale",
+     "image": "",
+     "colors": [
+      "#C2649E",
+      "#C2649E"
+     ],
+     "originalColor": false,
+     "keepDefaultTitle": false,
+     "showDescription": false,
+     "productType": false,
+     "onSale": false,
+     "isFeatured": false
+    }
+   ],
+   "line": false,
+   "marginLeft": 10.0,
+   "marginRight": 10.0,
+   "marginTop": 10.0,
+   "marginBottom": 10.0,
+   "paddingX": 0.0,
+   "paddingY": 0.0,
+   "marginX": 0.0,
+   "marginY": 0.0,
+   "noBackground": false,
+   "imageBorderStyle": "solid",
+   "imageSpacing": 0.0,
+   "labelFontSize": 14.0,
+   "horizontalItem": false,
+   "separateWidth": 24.0,
+   "gradientStyle": false
+  },
+  {
+   "name": "New Arrivals",
+   "image": "",
+   "category": "gid://shopify/Collection/474137264420",
+   "layout": "twoColumn",
+   "isSnapping": true,
+   "borderRadius": 3.0,
+   "hMargin": 6.0,
+   "useCircularRadius": true,
+   "useSort": false,
+   "showCategory": false,
+   "vMargin": 0.0,
+   "hPadding": 6.0,
+   "vPadding": 2.0,
+   "boxShadow": {
+    "blurRadius": 10.0,
+    "colorOpacity": 0.1,
+    "spreadRadius": 10.0,
+    "x": 0.0,
+    "y": 10.0
+   },
+   "cardDesign": "card",
+   "titleLine": 1,
+   "backgroundRadius": 10.0,
+   "showCountDown": false,
+   "onSale": false,
+   "rows": 1,
+   "columns": 3,
+   "imageRatio": 1.2,
+   "imageBoxfit": "cover",
+   "hidePrice": false,
+   "hideStore": false,
+   "hideTitle": false,
+   "enableRating": true,
+   "showStockStatus": true,
+   "hideEmptyProductListRating": false,
+   "showHeart": true,
+   "showCartButton": false,
+   "showCartIcon": true,
+   "showCartIconColor": false,
+   "cartIconRadius": 9.0,
+   "showQuantity": false,
+   "enableBottomAddToCart": false,
+   "showOnlyImage": false,
+   "showCartButtonWithQuantity": true,
+   "parallax": false,
+   "parallaxImageRatio": 1.2,
+   "hideEmptyProductLayout": true,
+   "productListItemHeight": 125.0,
+   "enableAutoSliding": false,
+   "productType": false
+  },
+  {
+   "name": "Best Seller",
+   "layout": "staggered",
+   "category": "gid://shopify/Collection/654030930212",
+   "isSnapping": false,
+   "image": "",
+   "borderRadius": 3.0,
+   "hMargin": 6.0,
+   "useCircularRadius": true,
+   "useSort": false,
+   "showCategory": false,
+   "vMargin": 0.0,
+   "hPadding": 6.0,
+   "vPadding": 2.0,
+   "cardDesign": "card",
+   "backgroundRadius": 10.0,
+   "showCountDown": false,
+   "onSale": false,
+   "rows": 1,
+   "columns": 3,
+   "imageRatio": 1.2,
+   "imageBoxfit": "cover",
+   "hidePrice": false,
+   "hideStore": false,
+   "hideTitle": false,
+   "enableRating": true,
+   "showStockStatus": true,
+   "hideEmptyProductListRating": false,
+   "showHeart": true,
+   "showCartButton": false,
+   "showCartIcon": true,
+   "showCartIconColor": false,
+   "cartIconRadius": 9.0,
+   "showQuantity": false,
+   "enableBottomAddToCart": false,
+   "showOnlyImage": false,
+   "showCartButtonWithQuantity": false,
+   "parallax": false,
+   "parallaxImageRatio": 1.2,
+   "hideEmptyProductLayout": true,
+   "productListItemHeight": 125.0,
+   "enableAutoSliding": true,
+   "productType": false,
+   "order": "desc",
+   "orderby": "title"
+  },
+  {
+   "name": "Just Dropped",
+   "image": "",
+   "category": "gid://shopify/Collection/654031159588",
+   "layout": "twoColumn",
+   "isSnapping": true,
+   "borderRadius": 3.0,
+   "hMargin": 6.0,
+   "useCircularRadius": true,
+   "useSort": false,
+   "showCategory": false,
+   "vMargin": 0.0,
+   "hPadding": 6.0,
+   "vPadding": 2.0,
+   "boxShadow": {
+    "blurRadius": 10.0,
+    "colorOpacity": 0.1,
+    "spreadRadius": 10.0,
+    "x": 0.0,
+    "y": 10.0
+   },
+   "cardDesign": "card",
+   "titleLine": 1,
+   "backgroundRadius": 10.0,
+   "showCountDown": false,
+   "onSale": false,
+   "rows": 1,
+   "columns": 3,
+   "imageRatio": 1.2,
+   "imageBoxfit": "cover",
+   "hidePrice": false,
+   "hideStore": false,
+   "hideTitle": false,
+   "enableRating": true,
+   "showStockStatus": true,
+   "hideEmptyProductListRating": false,
+   "showHeart": true,
+   "showCartButton": false,
+   "showCartIcon": true,
+   "showCartIconColor": false,
+   "cartIconRadius": 9.0,
+   "showQuantity": false,
+   "enableBottomAddToCart": false,
+   "showOnlyImage": false,
+   "showCartButtonWithQuantity": true,
+   "parallax": false,
+   "parallaxImageRatio": 1.2,
+   "hideEmptyProductLayout": true,
+   "productListItemHeight": 125.0,
+   "enableAutoSliding": false,
+   "productType": false
+  },
+  {
+   "name": "Isdal",
+   "layout": "staggered",
+   "category": "gid://shopify/Collection/470818816292",
+   "isSnapping": false,
+   "image": "",
+   "borderRadius": 3.0,
+   "hMargin": 6.0,
+   "useCircularRadius": true,
+   "useSort": false,
+   "showCategory": false,
+   "vMargin": 0.0,
+   "hPadding": 6.0,
+   "vPadding": 2.0,
+   "cardDesign": "card",
+   "backgroundRadius": 10.0,
+   "showCountDown": false,
+   "onSale": false,
+   "rows": 1,
+   "columns": 3,
+   "imageRatio": 1.2,
+   "imageBoxfit": "cover",
+   "hidePrice": false,
+   "hideStore": false,
+   "hideTitle": false,
+   "enableRating": true,
+   "showStockStatus": true,
+   "hideEmptyProductListRating": false,
+   "showHeart": true,
+   "showCartButton": false,
+   "showCartIcon": true,
+   "showCartIconColor": false,
+   "cartIconRadius": 9.0,
+   "showQuantity": false,
+   "enableBottomAddToCart": false,
+   "showOnlyImage": false,
+   "showCartButtonWithQuantity": false,
+   "parallax": false,
+   "parallaxImageRatio": 1.2,
+   "hideEmptyProductLayout": true,
+   "productListItemHeight": 125.0,
+   "enableAutoSliding": true,
+   "productType": false,
+   "order": "desc",
+   "orderby": "title"
+  },
+  {
+   "name": "Scarfs",
+   "image": "",
+   "category": "gid://shopify/Collection/470817538340",
+   "layout": "twoColumn",
+   "isSnapping": true,
+   "borderRadius": 3.0,
+   "hMargin": 6.0,
+   "useCircularRadius": true,
+   "useSort": false,
+   "showCategory": false,
+   "vMargin": 0.0,
+   "hPadding": 6.0,
+   "vPadding": 2.0,
+   "boxShadow": {
+    "blurRadius": 10.0,
+    "colorOpacity": 0.1,
+    "spreadRadius": 10.0,
+    "x": 0.0,
+    "y": 10.0
+   },
+   "cardDesign": "card",
+   "titleLine": 1,
+   "backgroundRadius": 10.0,
+   "showCountDown": false,
+   "onSale": false,
+   "rows": 1,
+   "columns": 3,
+   "imageRatio": 1.2,
+   "imageBoxfit": "cover",
+   "hidePrice": false,
+   "hideStore": false,
+   "hideTitle": false,
+   "enableRating": true,
+   "showStockStatus": true,
+   "hideEmptyProductListRating": false,
+   "showHeart": true,
+   "showCartButton": false,
+   "showCartIcon": true,
+   "showCartIconColor": false,
+   "cartIconRadius": 9.0,
+   "showQuantity": false,
+   "enableBottomAddToCart": false,
+   "showOnlyImage": false,
+   "showCartButtonWithQuantity": true,
+   "parallax": false,
+   "parallaxImageRatio": 1.2,
+   "hideEmptyProductLayout": true,
+   "productListItemHeight": 125.0,
+   "enableAutoSliding": false,
+   "productType": false
+  },
+  {
+   "name": "Clothing",
+   "image": "",
+   "category": "gid://shopify/Collection/470818259236",
+   "layout": "twoColumn",
+   "isSnapping": true,
+   "borderRadius": 3.0,
+   "hMargin": 6.0,
+   "useCircularRadius": true,
+   "useSort": false,
+   "showCategory": false,
+   "vMargin": 0.0,
+   "hPadding": 6.0,
+   "vPadding": 2.0,
+   "boxShadow": {
+    "blurRadius": 10.0,
+    "colorOpacity": 0.1,
+    "spreadRadius": 10.0,
+    "x": 0.0,
+    "y": 10.0
+   },
+   "cardDesign": "card",
+   "titleLine": 1,
+   "backgroundRadius": 10.0,
+   "showCountDown": false,
+   "onSale": false,
+   "rows": 1,
+   "columns": 3,
+   "imageRatio": 1.2,
+   "imageBoxfit": "cover",
+   "hidePrice": false,
+   "hideStore": false,
+   "hideTitle": false,
+   "enableRating": true,
+   "showStockStatus": true,
+   "hideEmptyProductListRating": false,
+   "showHeart": true,
+   "showCartButton": false,
+   "showCartIcon": true,
+   "showCartIconColor": false,
+   "cartIconRadius": 9.0,
+   "showQuantity": false,
+   "enableBottomAddToCart": false,
+   "showOnlyImage": false,
+   "showCartButtonWithQuantity": true,
+   "parallax": false,
+   "parallaxImageRatio": 1.2,
+   "hideEmptyProductLayout": true,
+   "productListItemHeight": 125.0,
+   "enableAutoSliding": false,
+   "productType": false
+  }
+ ],
+ "Setting": {
+  "MainColor": "#A51E8C",
+  "FontFamily": "Almarai",
+  "FontHeader": "Almarai",
+  "ProductListLayout": "list",
+  "StickyHeader": false,
+  "ShowChat": true,
+  "TabBarConfig": {
+   "enable": true,
+   "showMinimize": false,
+   "isSafeArea": true,
+   "color": null,
+   "colorCart": "ffa51e8c",
+   "colorIcon": "ff7a7b7f",
+   "colorActiveIcon": "ffa51e8c",
+   "iconSize": 22.968195913186673,
+   "indicatorStyle": "material",
+   "showFloatingClip": true,
+   "showFloating": true,
+   "enableOnTop": false,
+   "enableDivider": true,
+   "radiusTopLeft": 0.0,
+   "radiusTopRight": 0.0,
+   "radiusBottomLeft": 0.0,
+   "radiusBottomRight": 0.0,
+   "paddingLeft": 0.0,
+   "paddingRight": 0.0,
+   "paddingBottom": 0.0,
+   "paddingTop": 0.0,
+   "marginTop": 0.0,
+   "marginBottom": 0.0,
+   "marginLeft": 0.0,
+   "marginRight": 0.0,
+   "bottomBarStyle": "static",
+   "TabBarIndicator": {
+    "height": 2.0,
+    "tabPosition": "bottom",
+    "topRightRadius": 2.0,
+    "topLeftRadius": 3.0,
+    "bottomRightRadius": 4.0,
+    "bottomLeftRadius": 4.0,
+    "color": "ffa51e8c",
+    "horizontalPadding": 0.0,
+    "verticalPadding": 0.0,
+    "strokeWidth": 0.0,
+    "radius": 5.0,
+    "distanceFromCenter": 3.0,
+    "paintingStyle": "fill"
+   },
+   "TabBarFloating": {
+    "position": 2,
+    "radius": 50.0,
+    "color": "ffa51e8c",
+    "location": "centerDocked",
+    "width": 50.0,
+    "height": 50.0,
+    "elevation": 2.0,
+    "floatingType": "rectangle",
+    "notchMargin": 4.0,
+    "isCoverMode": false
+   }
+  },
+  "saleColor": "#A51E8C",
+  "secondaryColor": "#A51E8C"
+ },
+ "TabBar": [
+  {
+   "layout": "storeLocator",
+   "title": "Branches",
+   "icon": "storefront",
+   "fontFamily": "MaterialIcons",
+   "pos": 300,
+   "defaultTab": false,
+   "fullscreen": false,
+   "showOriginalColor": false,
+   "key": "branch001"
+  },
+  {
+   "layout": "category",
+   "categoryLayout": "grouped",
+   "icon": "assets/icons/tabs/icon-category.png",
+   "pos": 200,
+   "key": "DGkJPkxbOc",
+   "defaultTab": false
+  },
+  {
+   "layout": "home",
+   "icon": "assets/icons/tabs/icon-home.png",
+   "pos": 100,
+   "key": "XIwuxiEVoU",
+   "defaultTab": true
+  },
+  {
+   "layout": "cart",
+   "icon": "assets/icons/tabs/icon-cart2.png",
+   "pos": 400,
+   "key": "YoKaScWZpp",
+   "defaultTab": false
+  },
+  {
+   "key": "JspbgQfIWs",
+   "layout": "profile",
+   "icon": "assets/icons/tabs/icon-user.png",
+   "pos": 500,
+   "defaultTab": false,
+   "fullscreen": false,
+   "showOriginalColor": false,
+   "settings": [
+    "title-mine",
+    "order",
+    "lvCoupons",
+    "wishlist",
+    "lvReturn",
+    "lvPrivacy",
+    "lvAbout",
+    "title-prefs",
+    "notifications",
+    "rating"
+   ],
+   "subGeneralSetting": {
+    "privacy": {
+     "webUrl": "https://inspireui.com/privacy",
+     "webViewMode": false,
+     "requiredLogin": false,
+     "enableForward": false,
+     "enableBackward": true,
+     "enableClose": false,
+     "script": ""
+    },
+    "about": {
+     "webUrl": "https://fluxbuilder.com",
+     "webViewMode": false,
+     "requiredLogin": false,
+     "enableForward": false,
+     "enableBackward": true,
+     "enableClose": false,
+     "script": ""
+    },
+    "web-shipping": {
+     "title": "Shipping Policy",
+     "webUrl": "https://levoilestores.com/policies/shipping-policy",
+     "icon": "local_shipping",
+     "iconFontFamily": "MaterialIcons",
+     "webViewMode": true,
+     "requiredLogin": false,
+     "enableForward": false,
+     "enableBackward": true,
+     "enableClose": false,
+     "script": ""
+    },
+    "title-mine": {
+     "title": "My Account"
+    },
+    "title-prefs": {
+     "title": "Preferences"
+    }
+   },
+   "showBackground": false,
+   "styleItem": "flatShadow",
+   "background": null
+  }
+ ],
+ "searchSuggestion": [
+  "Here are some suggestions:",
+  "Print",
+  "T-Shirt",
+  "Jersey",
+  "Hoodie"
+ ],
+ "OnBoarding": {
+  "data": [
+   {
+    "title": "Welcome to Le Voile",
+    "desc": "Modest fashion, beautifully curated — scarves, abayas, isdal & more.",
+    "image": "assets/images/fogg-delivery-1.png",
+    "background": "#FBEFF7"
+   },
+   {
+    "title": "Shop with Ease",
+    "desc": "Browse our collections, pick your favorites, and checkout in seconds.",
+    "image": "assets/images/fogg-uploading-1.png",
+    "background": "#F7EFFB"
+   },
+   {
+    "title": "Elegance, Delivered",
+    "desc": "Your modest wardrobe is just a tap away.",
+    "image": "assets/images/fogg-order-completed.png",
+    "background": "#FFF2FA"
+   }
+  ]
+ },
+ "PrivacyPoliciesPageUrlOrId": "https://policies.google.com/?hl=en",
+ "Drawer": {
+  "logo": null,
+  "iconColor": "ffa51e8c",
+  "safeArea": true,
+  "enable": true,
+  "items": [
+   {
+    "type": "home",
+    "show": true
+   },
+   {
+    "type": "coupons",
+    "show": true
+   },
+   {
+    "type": "title-shop",
+    "show": true
+   },
+   {
+    "type": "category-newarrivals",
+    "show": true
+   },
+   {
+    "type": "category-summer",
+    "show": true
+   },
+   {
+    "type": "category-fashionwear",
+    "show": true
+   },
+   {
+    "type": "category-scarfs",
+    "show": true
+   },
+   {
+    "type": "category-innercaps",
+    "show": true
+   },
+   {
+    "type": "category-hajjumrah",
+    "show": true
+   },
+   {
+    "type": "category-accessories",
+    "show": true
+   },
+   {
+    "type": "category-isdal",
+    "show": true
+   },
+   {
+    "type": "category-sale",
+    "show": true
+   },
+   {
+    "type": "category-less200",
+    "show": true
+   },
+   {
+    "type": "title-info",
+    "show": true
+   },
+   {
+    "type": "branches",
+    "show": true
+   },
+   {
+    "type": "contact",
+    "show": true
+   },
+   {
+    "type": "policy-returns",
+    "show": true
+   },
+   {
+    "type": "about",
+    "show": true
+   },
+   {
+    "type": "login",
+    "show": true
+   }
+  ],
+  "subDrawerItem": {
+   "title-shop": {
+    "title": "Shop"
+   },
+   "title-info": {
+    "title": "Information"
+   },
+   "coupons": {
+    "title": "My Coupons"
+   },
+   "category-newarrivals": {
+    "category": "gid://shopify/Collection/474137264420",
+    "title": "New Arrivals",
+    "icon": "new_releases",
+    "iconFontFamily": "MaterialIcons"
+   },
+   "category-summer": {
+    "category": "gid://shopify/Collection/641524465956",
+    "title": "Summer Collection",
+    "icon": "wb_sunny",
+    "iconFontFamily": "MaterialIcons"
+   },
+   "category-fashionwear": {
+    "category": "gid://shopify/Collection/642837479716",
+    "title": "Fashion Wear",
+    "icon": "checkroom",
+    "iconFontFamily": "MaterialIcons"
+   },
+   "category-scarfs": {
+    "category": "gid://shopify/Collection/470817538340",
+    "title": "Scarfs",
+    "icon": "dry_cleaning",
+    "iconFontFamily": "MaterialIcons"
+   },
+   "category-innercaps": {
+    "category": "gid://shopify/Collection/470817636644",
+    "title": "Inner Caps",
+    "icon": "face",
+    "iconFontFamily": "MaterialIcons"
+   },
+   "category-hajjumrah": {
+    "category": "gid://shopify/Collection/482849980708",
+    "title": "Hajj | Umrah",
+    "icon": "mosque",
+    "iconFontFamily": "MaterialIcons"
+   },
+   "category-accessories": {
+    "category": "gid://shopify/Collection/470818685220",
+    "title": "Accessories",
+    "icon": "diamond",
+    "iconFontFamily": "MaterialIcons"
+   },
+   "category-isdal": {
+    "category": "gid://shopify/Collection/470818816292",
+    "title": "Isdal",
+    "icon": "woman",
+    "iconFontFamily": "MaterialIcons"
+   },
+   "category-sale": {
+    "category": "gid://shopify/Collection/481128939812",
+    "title": "Sale up to 70%",
+    "icon": "local_offer",
+    "iconFontFamily": "MaterialIcons"
+   },
+   "category-less200": {
+    "category": "gid://shopify/Collection/642639560996",
+    "title": "Less Than 200 EGP",
+    "icon": "savings",
+    "iconFontFamily": "MaterialIcons"
+   },
+   "branches": {
+    "title": "Branches"
+   },
+   "contact": {
+    "title": "Contact Us"
+   },
+   "policy-returns": {
+    "title": "Exchange & Return Policy"
+   },
+   "about": {
+    "title": "About Us"
+   }
+  }
+ }
+}

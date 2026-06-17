@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "413031463435",
+    "project_id": "levoilestores-93358",
+    "storage_bucket": "levoilestores-93358.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:413031463435:android:bc854a75cd9817f73be50e",
+        "android_client_info": {
+          "package_name": "com.levoile.stores"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeHcRu1Oh07ADat3jbOkX1Qdyzt75BzNA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:413031463435:android:bc854a75cd9817f73be50e",
+        "android_client_info": {
+          "package_name": "com.arenahere.levoile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeHcRu1Oh07ADat3jbOkX1Qdyzt75BzNA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
