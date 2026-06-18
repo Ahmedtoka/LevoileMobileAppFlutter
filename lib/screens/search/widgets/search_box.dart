@@ -134,13 +134,8 @@ class _SearchBoxState extends State<SearchBox> {
               ),
             ),
           ),
-          if (widget.showQRCode)
-            Consumer<UserModel>(
-              builder: (_, model, __) => ScannerButton(
-                user: model.user,
-                productType: context.read<ProductModel>().productType,
-              ),
-            ),
+          // Le Voile: QR/barcode scanner removed (camera not used) — keeps the
+          // app off the camera permission for store review.
         ],
       ),
     );
