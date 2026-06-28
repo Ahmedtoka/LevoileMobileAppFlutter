@@ -56,20 +56,6 @@ class _OnBoardingV1State extends State<OnBoardingV1>
                       width: MediaQuery.of(context).size.width * 0.62,
                       fit: BoxFit.contain,
                     ),
-                    const SizedBox(height: 18),
-
-                    // Slogan (same as the splash screen).
-                    Text(
-                      'M O D E S T   E L E G A N C E',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        letterSpacing: 3.0,
-                        fontWeight: FontWeight.w500,
-                        color: theme.colorScheme.secondary.withOpacity(0.75),
-                      ),
-                    ),
-
                     const Spacer(flex: 4),
 
                     if (showAuth) ...[

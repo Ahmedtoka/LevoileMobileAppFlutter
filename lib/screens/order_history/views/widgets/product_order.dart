@@ -36,7 +36,7 @@ class ProductOrder extends StatelessWidget {
         product: product,
         storeDeliveryDates: storeDeliveryDates,
         currencyCode: currencyCode,
-        disableReview: disableReview,
+        disableReview: true, // Le Voile: rating removed from order detail
       ),
       _ => ProductOrderItem(
         orderId: orderId,
@@ -44,7 +44,7 @@ class ProductOrder extends StatelessWidget {
         product: product,
         storeDeliveryDates: storeDeliveryDates,
         currencyCode: currencyCode,
-        disableReview: disableReview,
+        disableReview: true, // Le Voile: rating removed from order detail
       ),
     };
   }

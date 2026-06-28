@@ -57,7 +57,7 @@ class LogoIcon extends StatelessWidget {
               ),
             )
           : Icon(
-              Icons.blur_on,
+              Icons.menu,
               color:
                   config.iconColor ??
                   Theme.of(context).colorScheme.secondary.withValueOpacity(0.9),

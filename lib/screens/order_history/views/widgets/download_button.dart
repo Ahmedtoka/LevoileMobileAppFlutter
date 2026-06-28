@@ -26,9 +26,8 @@ class ProductDownloadButton extends StatefulWidget {
 
 class _ProductDownloadButtonState extends State<ProductDownloadButton> {
   bool isLoading = false;
-  bool get _shouldShow =>
-      widget.orderStatus == OrderStatus.completed &&
-      kPaymentConfig.enableDownloadProduct;
+  // Le Voile: download button removed from order detail (no downloadable products).
+  bool get _shouldShow => false;
 
   void _handleDownloadAction(String file) async {
     try {

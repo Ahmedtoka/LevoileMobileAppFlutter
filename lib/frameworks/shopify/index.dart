@@ -30,6 +30,7 @@ import '../../models/index.dart'
         Order,
         PaymentMethod,
         Product,
+        ProductItem,
         ShippingMethodModel,
         User,
         UserModel;
@@ -506,6 +507,26 @@ class ShopifyWidget extends BaseFrameworks
         );
         if (orderNum != null && !kIsWeb) {
           loading!(true);
+          // Snapshot the cart line items BEFORE clearing it, so the success
+          // screen can show a full invoice (items + totals) even when the
+          // order can't be read back from the web checkout (web login means
+          // the app has no customer session). This makes the Thank You summary
+          // appear on both Android and iOS.
+          final snapshotItems = <ProductItem>[];
+          for (final id in cartModel.productsInCart.keys) {
+            final product = cartModel.getProductById(id);
+            final qty = cartModel.productsInCart[id] ?? 1;
+            final lineTotal = cartModel.getProductPrice(id);
+            snapshotItems.add(
+              ProductItem.fromLocalJson({
+                'product_id': id,
+                'name': product?.name ?? '',
+                'quantity': qty,
+                'total': lineTotal,
+                'featuredImage': product?.imageFeature,
+              }),
+            );
+          }
           unawaited(cartModel.clearCart());
           Analytics.triggerPurchased(
             Order(
@@ -520,7 +541,7 @@ class ShopifyWidget extends BaseFrameworks
           Order successOrder = Order(
             number: orderNum,
             total: cartDataShopify.cost.totalAmount(),
-          );
+          )..lineItems = snapshotItems;
           final user = cartModel.user;
           if (user != null && (user.cookie?.isNotEmpty ?? false)) {
             final order = await shopifyService.getLatestOrder(

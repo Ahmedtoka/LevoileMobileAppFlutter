@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flux_ui/flux_ui.dart';
 
 import '../../common/constants.dart';
-import '../../data/boxes.dart';
 import '../../screens/base_screen.dart';
 
 class AnimatedSplash extends StatelessWidget {
@@ -82,9 +81,8 @@ class __AnimatedSplashStateChild extends BaseScreen<_AnimatedSplashChild>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
-  // Le Voile: sequenced splash — the logo fades in first, then the slogan.
+  // Le Voile: the logo fades in on the splash.
   late Animation<double> _logoFade;
-  late Animation<double> _sloganFade;
 
   @override
   void didChangeDependencies() {
@@ -103,15 +101,9 @@ class __AnimatedSplashStateChild extends BaseScreen<_AnimatedSplashChild>
     _animation = Tween(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInCubic),
     );
-    // Logo fades in over the first ~60%, slogan over the last ~45% (they
-    // overlap slightly for a smooth, staggered reveal).
     _logoFade = CurvedAnimation(
       parent: _animationController,
-      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-    );
-    _sloganFade = CurvedAnimation(
-      parent: _animationController,
-      curve: const Interval(0.55, 1.0, curve: Curves.easeOut),
+      curve: const Interval(0.0, 0.8, curve: Curves.easeOut),
     );
     _animationController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -133,61 +125,24 @@ class __AnimatedSplashStateChild extends BaseScreen<_AnimatedSplashChild>
     switch (widget.animationEffect) {
       case SplashScreenTypeConstants.fadeIn:
         {
-          // logo.png is 400 x 101 (ratio 3.96). The logo stays perfectly
-          // centred and the slogan fades in *below* it (fixed size/position),
-          // so nothing jumps or "pops" in size — only opacity animates.
+          // logo.png is 400 x 101 (ratio 3.96). Centered logo only — fades in.
           final logoWidth = size.width * 0.58;
           final logoHeight = logoWidth / 3.96;
-          final slogan = SettingsBox().splashSlogan.trim();
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final h = constraints.maxHeight.isFinite
-                  ? constraints.maxHeight
-                  : size.height;
-              return Stack(
-                children: [
-                  // Logo — fades in first.
-                  Center(
-                    child: FadeTransition(
-                      opacity: _logoFade,
-                      child: SizedBox(
-                        width: logoWidth,
-                        height: logoHeight,
-                        child: FluxImage(
-                          imageUrl: widget.imagePath,
-                          fit: BoxFit.contain,
-                          width: logoWidth,
-                          height: logoHeight,
-                          errorWidget: widget.errorWidget,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Slogan — fades in after, anchored just below the logo.
-                  if (slogan.isNotEmpty)
-                    Positioned(
-                      left: 16,
-                      right: 16,
-                      top: h / 2 + logoHeight / 2 + 16,
-                      child: FadeTransition(
-                        opacity: _sloganFade,
-                        child: Text(
-                          slogan,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFFA51E8C),
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
+          return Center(
+            child: FadeTransition(
+              opacity: _logoFade,
+              child: SizedBox(
+                width: logoWidth,
+                height: logoHeight,
+                child: FluxImage(
+                  imageUrl: widget.imagePath,
+                  fit: BoxFit.contain,
+                  width: logoWidth,
+                  height: logoHeight,
+                  errorWidget: widget.errorWidget,
+                ),
+              ),
+            ),
           );
         }
       case SplashScreenTypeConstants.zoomIn:

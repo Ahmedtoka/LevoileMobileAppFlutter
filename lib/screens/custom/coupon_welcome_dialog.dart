@@ -65,6 +65,7 @@ class WelcomeCouponFlow {
           phone: service.accountPhone,
         ),
       );
+      await _maybeShowOnline(ctx());
       await _requestNotification(ctx());
       return;
     }
@@ -118,6 +119,7 @@ class WelcomeCouponFlow {
           phone: enteredPhone,
         ),
       );
+      await _maybeShowOnline(ctx());
       await _requestNotification(ctx());
     }
   }
@@ -130,6 +132,26 @@ class WelcomeCouponFlow {
       await Provider.of<NotificationModel>(ctx, listen: false)
           .enableNotification();
     } catch (_) {}
+  }
+
+  /// Shows the online (first app-order) coupon popup right AFTER the branches
+  /// one, reusing the same phone. No-op if there's no online coupon, it's
+  /// disabled, or its code was already dismissed.
+  static Future<void> _maybeShowOnline(BuildContext? ctx) async {
+    final service = CouponService.instance;
+    final online = service.onlineCoupon.value;
+    if (ctx == null || online == null || !service.shouldShowOnline) return;
+    service.markOnlineShown();
+    await showDialog<void>(
+      context: ctx,
+      useRootNavigator: true,
+      barrierDismissible: false,
+      builder: (_) => CouponWelcomeDialog(
+        coupon: online,
+        popup: service.onlinePopup,
+        phone: service.accountPhone,
+      ),
+    );
   }
 }
 
@@ -174,8 +196,6 @@ class CouponWelcomeDialog extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  const Text('🎉', style: TextStyle(fontSize: 40)),
-                  const SizedBox(height: 8),
                   Text(
                     popup.title,
                     textAlign: TextAlign.center,
@@ -249,14 +269,6 @@ class CouponWelcomeDialog extends StatelessWidget {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tap the code to copy',
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: theme.colorScheme.secondary.withOpacity(0.7),
-                    ),
-                  ),
                   const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
@@ -423,8 +435,6 @@ class _CouponPhoneDialogState extends State<CouponPhoneDialog> {
               ),
               child: Column(
                 children: [
-                  const Text('🎁', style: TextStyle(fontSize: 38)),
-                  const SizedBox(height: 8),
                   Text(
                     widget.popup.title,
                     textAlign: TextAlign.center,
@@ -436,7 +446,7 @@ class _CouponPhoneDialogState extends State<CouponPhoneDialog> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Enter your phone number to claim your discount coupon',
+                    'Enter your mobile number to claim your discount coupon.\nYou can redeem it at any Le Voile branch',
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),

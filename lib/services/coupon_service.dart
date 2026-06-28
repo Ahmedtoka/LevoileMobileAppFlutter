@@ -78,7 +78,7 @@ class LvPopup {
         subtitle: json?['subtitle']?.toString() ??
             'You earned a {discount}% discount coupon',
         redeem: json?['redeem']?.toString() ??
-            'Redeem it now at any Le Voile branch 💜',
+            'Redeem it now at any Le Voile branch',
         note: json?['note']?.toString() ??
             'You’ll always find this code in My Account → My Coupons',
       );
@@ -90,7 +90,7 @@ class LvPopup {
     enabled: true,
     title: 'Congratulations!',
     subtitle: 'You earned a {discount}% discount coupon',
-    redeem: 'Redeem it now at any Le Voile branch 💜',
+    redeem: 'Redeem it now at any Le Voile branch',
     note: 'You’ll always find this code in My Account → My Coupons',
   );
 }
@@ -108,6 +108,8 @@ class CouponService {
   // Stores the coupon code already shown in the popup, so a NEW/re-issued
   // coupon code shows the popup again (and same code stays dismissed).
   static const _kWelcomeShownKey = 'lv_coupon_welcome_code';
+  // Same idea for the online (first app-order) coupon popup.
+  static const _kOnlineShownKey = 'lv_coupon_online_code';
 
   /// Welcome coupon (null = none/unavailable). Used by the popup.
   final ValueNotifier<LvCoupon?> coupon = ValueNotifier<LvCoupon?>(null);
@@ -124,6 +126,11 @@ class CouponService {
 
   /// Popup texts/enabled flag from the dashboard.
   LvPopup popup = LvPopup.fallback;
+
+  /// Online (first app-order) coupon + its popup config. Shown right AFTER the
+  /// branches popup, using the same phone.
+  final ValueNotifier<LvCoupon?> onlineCoupon = ValueNotifier<LvCoupon?>(null);
+  LvPopup onlinePopup = LvPopup.fallback;
 
   bool _initialized = false;
 
@@ -282,6 +289,14 @@ class CouponService {
       final body = jsonDecode(res.body);
       popup = LvPopup.fromJson(body['popup'] as Map?);
 
+      // Online (first app-order) coupon — claimed with the same phone.
+      if (body['onlinePopup'] != null) {
+        onlinePopup = LvPopup.fromJson(body['onlinePopup'] as Map?);
+      }
+      onlineCoupon.value = body['onlineCoupon'] != null
+          ? LvCoupon.fromJson(body['onlineCoupon'])
+          : null;
+
       if (body['needs_phone'] == true) {
         needsPhone.value = true;
         debugPrint('🎟️[Coupon] → needs_phone=true (will ask phone in popup)');
@@ -353,6 +368,20 @@ class CouponService {
     SecureStorage().set(_kWelcomeShownKey, coupon.value?.code ?? '1');
     shouldShowWelcome.value = false;
     track('popup_shown');
+  }
+
+  /// True when the online (first app-order) popup should be shown: we have an
+  /// online coupon, its popup is enabled, it's unused, and this code hasn't
+  /// been dismissed yet.
+  bool get shouldShowOnline {
+    final c = onlineCoupon.value;
+    if (c == null || !onlinePopup.enabled || c.used) return false;
+    final dismissed = SecureStorage().get(_kOnlineShownKey);
+    return c.code.isNotEmpty && dismissed != c.code;
+  }
+
+  void markOnlineShown() {
+    SecureStorage().set(_kOnlineShownKey, onlineCoupon.value?.code ?? '1');
   }
 
   /// Reports a funnel/presence event to the dashboard, keyed by device id.

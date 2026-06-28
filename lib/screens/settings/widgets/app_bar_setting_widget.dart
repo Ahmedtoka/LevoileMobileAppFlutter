@@ -34,14 +34,14 @@ class _AppBarSettingWidgetState extends State<AppBarSettingWidget>
   bool get _canPop => ModalRoute.of(context)?.canPop ?? false;
 
   Widget _renderDrawerIcon({Color color = Colors.white70}) {
-    var icon = Icons.blur_on;
+    var icon = Icons.menu;
     if (widget.drawerIcon != null) {
       icon =
           iconPicker(
             widget.drawerIcon!['icon'],
             widget.drawerIcon!['fontFamily'],
           ) ??
-          Icons.blur_on;
+          Icons.menu;
     }
     return Icon(icon, color: color);
   }

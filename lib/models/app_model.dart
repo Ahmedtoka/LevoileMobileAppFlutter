@@ -443,20 +443,26 @@ class AppModel with ChangeNotifier {
       }
 
       if (config != null) {
+        // Instant first paint from the bundled config…
         appConfig = AppConfig.fromJson(config);
-      } else {
-        final localConfig = await _loadConfigJson();
-        if (localConfig != null) {
-          appConfig = localConfig;
-        }
+      }
 
-        /// load config from Notion
-        if (ServerConfig().type == ConfigType.notion) {
-          final appCfg = await Services().widget.onGetAppConfig(langCode);
+      // …then ALWAYS pull the freshest config from the dashboard
+      // (cloud → last-good cache → bundled asset). This makes the FIRST launch
+      // show live data (slogan, layout, categories) without needing a
+      // dashboard "Publish". If the server is unreachable it falls back to the
+      // cache, and finally to whatever was already set above.
+      final freshConfig = await _loadConfigJson();
+      if (freshConfig != null) {
+        appConfig = freshConfig;
+      }
 
-          if (appCfg != null) {
-            appConfig = appCfg;
-          }
+      /// load config from Notion
+      if (config == null && ServerConfig().type == ConfigType.notion) {
+        final appCfg = await Services().widget.onGetAppConfig(langCode);
+
+        if (appCfg != null) {
+          appConfig = appCfg;
         }
       }
 
