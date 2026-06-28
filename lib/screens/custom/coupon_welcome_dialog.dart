@@ -50,6 +50,8 @@ class WelcomeCouponFlow {
     if (coupon != null) {
       if (service.shouldShowWelcome.value != true) {
         debugPrint('🎟️[CouponFlow] CASE A skipped (already dismissed/used)');
+        // The branches popup was already seen — still offer the online one.
+        await _maybeShowOnline(ctx());
         return;
       }
       debugPrint('🎟️[CouponFlow] CASE A → showing coupon ${coupon.code}');
