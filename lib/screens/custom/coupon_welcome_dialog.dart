@@ -354,11 +354,26 @@ class CouponPhoneDialog extends StatefulWidget {
 
 class _CouponPhoneDialogState extends State<CouponPhoneDialog> {
   final _controller = TextEditingController();
+  // Explicit FocusNode so we can call requestFocus() ourselves.
+  // autofocus:true alone is unreliable inside dialogs on iPad (iPadOS) because
+  // the software keyboard is suppressed until the route is fully settled.
+  final _focusNode = FocusNode();
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    // Request focus after the first frame so the dialog route is settled and
+    // the keyboard can appear on both iPhone and iPad.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -434,8 +449,11 @@ class _CouponPhoneDialogState extends State<CouponPhoneDialog> {
                 children: [
                   TextField(
                     controller: _controller,
+                    focusNode: _focusNode,
                     keyboardType: TextInputType.phone,
-                    autofocus: true,
+                    // autofocus is intentionally omitted here; focus is
+                    // requested explicitly in initState via addPostFrameCallback
+                    // so the software keyboard appears reliably on iPad as well.
                     // Digits only, capped at 11 — can't type 10 or 12.
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,

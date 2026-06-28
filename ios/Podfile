@@ -39,6 +39,11 @@ target 'Runner' do
   pod 'Firebase/Crashlytics'
   pod 'Firebase/Messaging'
 
+  # Explicitly reference the local Flutter-managed podspec for webview_flutter_wkwebview.
+  # google_mobile_ads declares it as a pod dependency, but CocoaPods cannot find it in
+  # the trunk because it is distributed as a local Flutter plugin via symlinks.
+  pod 'webview_flutter_wkwebview', :path => '.symlinks/plugins/webview_flutter_wkwebview/darwin'
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 

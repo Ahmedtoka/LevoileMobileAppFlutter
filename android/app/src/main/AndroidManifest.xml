@@ -12,9 +12,17 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Le Voile OTA: install the downloaded APK update -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.CAMERA" tools:node="remove" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- READ_EXTERNAL_STORAGE removed: legacy equivalent of READ_MEDIA_*, not needed by this app.
+         READ_MEDIA_IMAGES / READ_MEDIA_VIDEO are explicitly stripped so that
+         image_picker / file_picker plugin manifests cannot inject them into the
+         merged APK.  The app uses one-time access via the system Photo Picker
+         (image_picker 1.x on API 33+ delegates to Android PhotoPicker), which
+         requires NO special permission — complying with Google Play's
+         Photo and Video Permissions policy. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"     tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"      tools:node="remove" />
 
     <!-- Use for SmartChat feature -->
     <queries>
