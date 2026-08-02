@@ -5,12 +5,12 @@ import 'package:provider/provider.dart';
 import '../../../common/constants.dart';
 import '../../../common/tools/navigate_tools.dart';
 import '../../../models/app_model.dart';
+import '../../../models/entities/back_drop_arguments.dart';
 import '../../../models/user_model.dart';
 import '../../../routes/flux_navigate.dart';
 
 /// Le Voile — the home-page header: hamburger on the left, the wordmark large
-/// in the middle, an account icon on the right, and a greeting under it once
-/// the customer is signed in.
+/// in the middle, and one action button on the right.
 ///
 /// Replaces the stock FluxStore `logo` block ON THE HOME PAGE ONLY. It is a
 /// HorizonLayout block, so no other screen's app bar is touched — that was a
@@ -19,11 +19,11 @@ import '../../../routes/flux_navigate.dart';
 /// Config shape (built by ConfigBuilder):
 /// {
 ///   "layout": "lvHeader",
-///   "logo": "https://…"        // empty → the logo bundled with the app
-///   "logoSize": 150,
+///   "logo": "https://…"          // empty → the logo bundled with the app
+///   "logoSize": 46,              // HEIGHT, not width
 ///   "showMenu": true,
-///   "showAccount": true,
-///   "greeting": "Hi {name}"    // empty → never greet
+///   "rightAction": "search",     // search | account | none
+///   "greeting": "Hi {name}"      // empty → never greet
 /// }
 class LvHeaderBar extends StatelessWidget {
   final Map config;
@@ -31,15 +31,34 @@ class LvHeaderBar extends StatelessWidget {
 
   String get _logo => config['logo']?.toString().trim() ?? '';
   bool get _showMenu => config['showMenu'] != false;
-  bool get _showAccount => config['showAccount'] != false;
   String get _greetingTemplate => config['greeting']?.toString().trim() ?? '';
 
-  /// Parsed rather than cast — the dashboard can send this as a string ("150")
+  /// What sits on the right of the wordmark: `search`, `account` or `none`.
+  ///
+  /// One slot, one choice — search and the account icon are alternatives, not
+  /// toggles. Anything unrecognised falls back to search rather than leaving
+  /// the corner empty.
+  String get _rightAction {
+    final value = config['rightAction']?.toString().trim() ?? '';
+    return const ['search', 'account', 'none'].contains(value)
+        ? value
+        : 'search';
+  }
+
+  /// Logo HEIGHT, not width.
+  ///
+  /// It used to set the width with the height left free, so a logo file that is
+  /// roughly square — or one exported with transparent margins — rendered as
+  /// tall as it was wide and left a huge blank band above and below the
+  /// wordmark. Height is the dimension a header bar actually cares about; the
+  /// width then follows from the artwork's own aspect ratio.
+  ///
+  /// Parsed rather than cast — the dashboard can send this as a string ("46")
   /// and a hard cast would take the whole home page down with a red screen.
   double get _logoSize {
     final raw = config['logoSize'];
-    final v = raw is num ? raw.toDouble() : double.tryParse('$raw') ?? 150.0;
-    return v.clamp(80.0, 300.0);
+    final v = raw is num ? raw.toDouble() : double.tryParse('$raw') ?? 46.0;
+    return v.clamp(24.0, 96.0);
   }
 
   /// Width of the two fixed side columns.
@@ -77,6 +96,16 @@ class LvHeaderBar extends StatelessWidget {
     );
   }
 
+  void _openSearch(BuildContext context) {
+    // Same route and argument shape the stock logo block used, so the search
+    // screen gets the block config it expects.
+    FluxNavigate.pushNamed(
+      RouteList.homeSearch,
+      arguments: BackDropArguments(config: Map<String, dynamic>.from(config)),
+      context: context,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -85,7 +114,12 @@ class LvHeaderBar extends StatelessWidget {
     // listen: true — the greeting has to appear the moment the customer signs
     // in, without waiting for something unrelated to rebuild this subtree.
     final userModel = Provider.of<UserModel>(context);
-    final name = _greetingTemplate.isEmpty ? null : _firstName(userModel);
+    // The server already blanks the greeting unless the slot shows the account
+    // button, but check here too: a device still serving its last-good
+    // `lv_cached_config_*` from before `rightAction` existed would otherwise
+    // print "Hi Sara" under a magnifying glass until the config refreshed.
+    final canGreet = _rightAction == 'account' && _greetingTemplate.isNotEmpty;
+    final name = canGreet ? _firstName(userModel) : null;
     final greeting = name == null
         ? ''
         : _greetingTemplate.replaceAll('{name}', name);
@@ -108,7 +142,10 @@ class LvHeaderBar extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 6, 8, 2),
+        // Tight: the ticker sits directly above and the hero directly below,
+        // and both bring their own breathing room. Anything more here reads as
+        // a gap rather than as spacing.
+        padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
         child: Row(
           children: [
             SizedBox(
@@ -125,13 +162,16 @@ class LvHeaderBar extends StatelessWidget {
             Expanded(
               child: Center(
                 child: SizedBox(
-                  width: _logoSize,
+                  // Height tight, width loose: the image keeps its own aspect
+                  // ratio and can never be taller than the bar.
+                  height: _logoSize,
                   child: logoUrl.isNotEmpty
                       ? FluxImage(imageUrl: logoUrl, fit: BoxFit.contain)
-                      : Text(
-                          'Le Voile',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 26, color: primary),
+                      : FittedBox(
+                          child: Text(
+                            'Le Voile',
+                            style: TextStyle(fontSize: 26, color: primary),
+                          ),
                         ),
                 ),
               ),
@@ -142,16 +182,24 @@ class LvHeaderBar extends StatelessWidget {
             // customer's name happens to be.
             SizedBox(
               width: _sideWidth,
-              child: _showAccount
-                  ? Column(
+              child: _rightAction == 'none'
+                  ? const SizedBox.shrink()
+                  : Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _CircleButton(
-                          icon: Icons.person_outline_rounded,
-                          color: primary,
-                          onTap: () =>
-                              _openAccount(context, userModel.loggedIn),
-                        ),
+                        if (_rightAction == 'search')
+                          _CircleButton(
+                            icon: Icons.search_rounded,
+                            color: primary,
+                            onTap: () => _openSearch(context),
+                          )
+                        else
+                          _CircleButton(
+                            icon: Icons.person_outline_rounded,
+                            color: primary,
+                            onTap: () =>
+                                _openAccount(context, userModel.loggedIn),
+                          ),
                         if (greeting.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 2),
@@ -168,8 +216,7 @@ class LvHeaderBar extends StatelessWidget {
                             ),
                           ),
                       ],
-                    )
-                  : const SizedBox.shrink(),
+                    ),
             ),
           ],
         ),

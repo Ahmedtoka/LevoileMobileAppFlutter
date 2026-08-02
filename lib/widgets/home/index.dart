@@ -15,6 +15,8 @@ import '../../models/entities/back_drop_arguments.dart';
 import '../../models/notification_model.dart';
 import '../../modules/dynamic_layout/dynamic_layout.dart';
 import '../../modules/dynamic_layout/helper/helper.dart';
+// Le Voile: the pinned announcement strip.
+import '../../modules/dynamic_layout/lv/ticker_bar.dart';
 import '../../modules/multi_site/multi_site_factory.dart';
 import '../../routes/flux_navigate.dart';
 import '../../screens/common/app_bar_mixin.dart';
@@ -63,7 +65,18 @@ class _HomeLayoutState extends State<HomeLayout> with AppBarMixin {
     widgetData = List<Map<String, dynamic>>.from(
       widget.configs['HorizonLayout'],
     );
-    if (widgetData.isNotEmpty && widget.isShowAppbar && !widget.showNewAppBar) {
+    // Le Voile: `!_isLvTicker` guard added.
+    //
+    // This drops the FIRST block on the assumption that it is the `logo` one,
+    // already drawn as the app bar. `isShowAppbar` is set from
+    // `horizonLayout.first['layout'] == 'logo'` (home_screen.dart), so today
+    // the two always agree — but the ticker is emitted BEFORE the logo, and if
+    // that ever changed, this line would silently delete the announcement strip
+    // with no visible error. Never remove a ticker here.
+    if (widgetData.isNotEmpty &&
+        widget.isShowAppbar &&
+        !widget.showNewAppBar &&
+        !_isLvTicker(widgetData.first)) {
       widgetData.removeAt(0);
     }
     final tabBarConfig = widget.configs['TabBar'];
@@ -286,6 +299,29 @@ class _HomeLayoutState extends State<HomeLayout> with AppBarMixin {
     );
   }
 
+  /// Le Voile: the announcement strip's config, if the dashboard sent one.
+  ///
+  /// It is a HorizonLayout block like any other, so by default it scrolled away
+  /// with the page. The design wants it pinned, so it is pulled out here and
+  /// emitted as a SliverPersistentHeader instead — and skipped inside the
+  /// SliverList below. Returns null when there is nothing to show, so an
+  /// empty ticker never reserves a blank band.
+  Map<String, dynamic>? get _lvTickerConfig {
+    for (final config in widgetData) {
+      if (config is! Map || config['layout'] != 'lvTicker') continue;
+
+      final messages = (config['messages'] as List?) ?? const [];
+      if (messages.any((m) => m.toString().trim().isNotEmpty)) {
+        return Map<String, dynamic>.from(config);
+      }
+    }
+
+    return null;
+  }
+
+  static bool _isLvTicker(dynamic config) =>
+      config is Map && config['layout'] == 'lvTicker';
+
   List<Widget> get horizontalLayouts => <Widget>[
     if (widget.showNewAppBar && !isDisplayDesktop) sliverAppBarWidget,
     if (widget.isShowAppbar && !widget.showNewAppBar && !isDisplayDesktop)
@@ -295,10 +331,22 @@ class _HomeLayoutState extends State<HomeLayout> with AppBarMixin {
         onRefresh: onRefresh,
         refreshTriggerPullDistance: 175,
       ),
+    // Le Voile: pinned, so the announcements stay on screen while scrolling.
+    // After the refresh control so pull-to-refresh still owns the overscroll.
+    if (_lvTickerConfig != null)
+      SliverPersistentHeader(
+        pinned: true,
+        delegate: LvTickerHeaderDelegate(config: _lvTickerConfig!),
+      ),
     if (widgetData.isNotEmpty)
       SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           var config = widgetData[index];
+
+          // Le Voile: already drawn as the pinned header above. Skipped rather
+          // than filtered out of widgetData so the indexes below — and the
+          // preview overlay's — keep lining up with the config.
+          if (_isLvTicker(config)) return const SizedBox.shrink();
 
           /// if show app bar, the preview should plus +1
           var previewIndex = widget.isShowAppbar ? index + 1 : index;

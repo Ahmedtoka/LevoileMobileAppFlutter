@@ -44,15 +44,6 @@ class LvHeroBanner extends StatelessWidget {
 
   Map get _link => config['link'] is Map ? config['link'] as Map : const {};
 
-  /// Sticker diameter, mirroring _StickerBadge — the Stack has to leave room
-  /// above the photo for however far the badge hangs over the top edge, and
-  /// that depends on how big the admin made it.
-  double get _badgeSize {
-    final raw = _badge?['size'];
-    final v = raw is num ? raw.toDouble() : double.tryParse('$raw') ?? 76.0;
-    return v.clamp(52.0, 130.0);
-  }
-
   void _onTap(BuildContext context) {
     if (_link.isEmpty) return;
     NavigateTools.onTapNavigateOptions(
@@ -73,7 +64,11 @@ class LvHeroBanner extends StatelessWidget {
       // at the top or it gets clipped — and how much room depends on the size
       // the admin chose.
       padding: EdgeInsets.only(
-        top: badge != null ? _badgeSize * 0.2 : 0,
+        // Only as much as the badge actually hangs over the photo's top edge
+        // (it is offset by -8), not a proportion of the whole circle — 0.2 of a
+        // 76pt badge reserved 15pt where 10 is enough, and that showed up as a
+        // gap under the header.
+        top: badge != null ? 10 : 0,
         bottom: 4,
       ),
       child: Stack(
@@ -240,46 +235,46 @@ class _StickerBadge extends StatelessWidget {
         // overflows the circle at accessibility sizes.
         child: MediaQuery.withNoTextScaling(
           child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (l1.isNotEmpty)
-              Text(
-                l1.toUpperCase(),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 7 * scale,
-                  letterSpacing: 1 * scale,
-                  fontWeight: FontWeight.w700,
-                  color: color,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (l1.isNotEmpty)
+                Text(
+                  l1.toUpperCase(),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 7 * scale,
+                    letterSpacing: 1 * scale,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
                 ),
-              ),
-            if (l2.isNotEmpty)
-              Text(
-                l2,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 19 * scale,
-                  height: 1,
-                  fontWeight: FontWeight.w800,
-                  color: color,
+              if (l2.isNotEmpty)
+                Text(
+                  l2,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 19 * scale,
+                    height: 1,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
                 ),
-              ),
-            if (l3.isNotEmpty)
-              Text(
-                l3.toUpperCase(),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 8 * scale,
-                  letterSpacing: .5 * scale,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF3A2A28),
+              if (l3.isNotEmpty)
+                Text(
+                  l3.toUpperCase(),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 8 * scale,
+                    letterSpacing: .5 * scale,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF3A2A28),
+                  ),
                 ),
-              ),
             ],
           ),
         ),

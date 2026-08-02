@@ -85,7 +85,10 @@ class _ProductCardState extends State<ProductCard> with ActionButtonMixin {
     Widget productInfo = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 10),
+        // Le Voile: 10 -> 4. The card already has vertical padding of its own
+        // from the config, so this stacked on top of it and pushed the name
+        // well clear of the photo.
+        const SizedBox(height: 4),
         CategoryName(
           product: widget.item,
           show: widget.config.showProductCardCategory,
@@ -100,7 +103,10 @@ class _ProductCardState extends State<ProductCard> with ActionButtonMixin {
           show: productConfig.showShortDescription,
         ),
         StoreName(product: widget.item, hide: productConfig.hideStore),
-        const SizedBox(height: 8),
+        // Le Voile: 8 -> 2. The gap between the product name and its price was
+        // the widest space on the card. `hideStore` is true for us, so nothing
+        // sits between them and this spacer was the whole gap.
+        const SizedBox(height: 2),
         Align(
           alignment: Alignment.bottomLeft,
           child: Stack(

@@ -17,6 +17,20 @@ class LvTickerBar extends StatefulWidget {
   final Map config;
   const LvTickerBar({required this.config, super.key});
 
+  /// Message font size. Also drives the strip's fixed height.
+  static const double fontSize = 10.5;
+
+  /// Vertical padding inside the coloured bar, top and bottom.
+  static const double barPadding = 7;
+
+  /// The strip's TOTAL height.
+  ///
+  /// On the WIDGET rather than its State because the home page pins the ticker
+  /// as a SliverPersistentHeader, which has to know the extent before any State
+  /// exists. If this and the widget's real height ever disagree, the pinned bar
+  /// either clips its text or leaves a blank band under itself.
+  static const double barHeight = fontSize * 1.6 + barPadding * 2;
+
   @override
   State<LvTickerBar> createState() => _LvTickerBarState();
 }
@@ -99,9 +113,6 @@ class _LvTickerBarState extends State<LvTickerBar>
     super.dispose();
   }
 
-  /// Message font size. Also drives the strip's fixed height — see build().
-  static const double _fontSize = 10.5;
-
   @override
   Widget build(BuildContext context) {
     final messages = _messages;
@@ -123,7 +134,8 @@ class _LvTickerBarState extends State<LvTickerBar>
     // accessibility text size — at 2× the glyphs just get clipped by the
     // ClipRect — and the Semantics label above already gives a screen reader
     // the full message.
-    const stripHeight = _fontSize * 1.6;
+    const stripHeight =
+        LvTickerBar.barHeight - LvTickerBar.barPadding * 2;
 
     final row = Row(
       mainAxisSize: MainAxisSize.min,
@@ -135,7 +147,7 @@ class _LvTickerBarState extends State<LvTickerBar>
             softWrap: false,
             textScaler: TextScaler.noScaling,
             style: TextStyle(
-              fontSize: _fontSize,
+              fontSize: LvTickerBar.fontSize,
               letterSpacing: 0.5,
               height: 1.2,
               fontWeight: FontWeight.w500,
@@ -147,7 +159,7 @@ class _LvTickerBarState extends State<LvTickerBar>
             child: Text(
               '•',
               textScaler: TextScaler.noScaling,
-              style: TextStyle(fontSize: _fontSize, color: dotColor),
+              style: TextStyle(fontSize: LvTickerBar.fontSize, color: dotColor),
             ),
           ),
         ],
@@ -157,7 +169,7 @@ class _LvTickerBarState extends State<LvTickerBar>
     return Container(
       width: double.infinity,
       color: _color('bgColor', Theme.of(context).primaryColor),
-      padding: const EdgeInsets.symmetric(vertical: 7),
+      padding: const EdgeInsets.symmetric(vertical: LvTickerBar.barPadding),
       // The strip is decorative; a screen reader should read the messages once
       // rather than announce an endlessly moving marquee.
       child: Semantics(
@@ -227,5 +239,45 @@ class _LvTickerBarState extends State<LvTickerBar>
         ),
       ),
     );
+  }
+}
+
+/// Pins [LvTickerBar] to the top of the home page so it stays put while the
+/// customer scrolls.
+///
+/// The strip is a HorizonLayout block like every other, so by default it
+/// scrolled away with the rest of the page. `HomeLayout` skips it in the
+/// SliverList and emits this instead — see the `lvTicker` note there.
+class LvTickerHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final Map config;
+
+  const LvTickerHeaderDelegate({required this.config});
+
+  // Fixed extent: min == max means the bar never shrinks or grows on scroll.
+  @override
+  double get minExtent => LvTickerBar.barHeight;
+
+  @override
+  double get maxExtent => LvTickerBar.barHeight;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    // Returning the same widget TYPE every time is what keeps the marquee's
+    // State — and so its AnimationController — alive across rebuilds. Do not
+    // add a key here.
+    return LvTickerBar(config: config);
+  }
+
+  @override
+  bool shouldRebuild(covariant LvTickerHeaderDelegate oldDelegate) {
+    // A Map has no value equality, so there is no cheap way to tell a genuinely
+    // new config from the same one rebuilt. Rebuilding is cheap (one Row of
+    // Text) and the widget's State survives it, whereas skipping a real change
+    // would leave a stale message on screen after a config_update push.
+    return true;
   }
 }
