@@ -70,11 +70,23 @@ const ColorScheme kDarkColorScheme = ColorScheme(
 );
 
 /// basic colors
-/// Le Voile brand palette (magenta) replacing the default teal/blue accents.
-const kTeal50 = Color(0xFFF6E3F0);
-const kTeal100 = Color(0xFFA51E8C);
+/// Le Voile: brand palette (magenta) replacing the default teal/blue accents.
+///
+/// ⚠ The names are stock FluxStore ('kTeal…') but the VALUES are Le Voile
+/// magenta. They are kept under the teal names because the template references
+/// them all over `packages/` and `lib/`, and renaming them would turn a template
+/// upgrade into a hundred conflicts. Read them as: kTeal100 = brand, kTeal50 =
+/// its pale tint, kTeal400 = its dark shade.
+///
+/// The one place a fallback colour should ever be needed is before the remote
+/// config loads — everything after that follows `Setting.MainColor` from the
+/// dashboard, so change the colour THERE, not here.
+const kBrandMagenta = Color(0xFF9E197E);
 
-const kTeal400 = Color(0xFF7A1568);
+const kTeal50 = Color(0xFFF5E3EF); // pale tint of the brand
+const kTeal100 = kBrandMagenta; // the brand itself
+
+const kTeal400 = Color(0xFF741360); // dark shade of the brand
 const kGrey900 = Color(0xFF263238);
 const kGrey600 = Color(0xFF546E7A);
 const kGrey200 = Color(0xFFEEEEEE);
@@ -86,7 +98,7 @@ const kRedColorHeart = Color(0xFFf22742);
 
 /// color for theme
 const kLightPrimary = Color(0xfffcfcff);
-const kLightAccent = Color(0xFFA51E8C);
+const kLightAccent = kBrandMagenta;
 const kDarkAccent = Color(0xffF4F5F5);
 
 const kLightBG = Color(0xffF1F2F3);

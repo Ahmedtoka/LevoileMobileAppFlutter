@@ -9,7 +9,9 @@ class ThemeConfig {
   String? primaryColorLight;
   String? textColor;
   String? secondaryColor;
-  String saleColor = '#A51E8C';
+  // Le Voile: brand magenta. Overridden by Setting.saleColor from the
+  // dashboard; this is only the pre-config fallback.
+  String saleColor = '#9e197e';
 
   String get logo => logoImage ?? kLogo;
   Color get hexSaleColor => HexColor(saleColor);
@@ -21,7 +23,7 @@ class ThemeConfig {
     this.primaryColorLight,
     this.textColor,
     this.secondaryColor,
-    this.saleColor = '#A51E8C',
+    this.saleColor = '#9e197e',
   });
 
   ThemeConfig.fromJson(Map config) {
@@ -31,7 +33,7 @@ class ThemeConfig {
     primaryColorLight = config['primaryColorLight'];
     textColor = config['textColor'];
     secondaryColor = config['secondaryColor'];
-    saleColor = config['saleColor'] ?? '#A51E8C';
+    saleColor = config['saleColor'] ?? '#9e197e';
   }
 
   Map? toJson() {

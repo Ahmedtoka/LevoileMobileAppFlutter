@@ -17,6 +17,7 @@ import 'index.dart'
         ProductTitle,
         ProductRating,
         StockStatus;
+import 'lv_product_badges.dart';
 import 'widgets/cart_button_with_quantity.dart';
 import 'widgets/category_name.dart';
 
@@ -108,6 +109,9 @@ class ProductGlass extends StatelessWidget with ActionButtonMixin {
                   ),
                 ),
               ...Services().renderProductBadges(context, item),
+              // Le Voile: "Save X%" from the product's own prices, or a
+              // New/Bestseller label mapped from its Shopify tags.
+              LvProductBadges(product: item),
             ],
           ),
         ),

@@ -23,6 +23,7 @@ import 'index.dart'
         SaleProgressBar,
         StockStatus,
         StoreName;
+import 'lv_product_badges.dart';
 import 'widgets/cart_button_with_quantity.dart';
 import 'widgets/category_name.dart';
 
@@ -238,6 +239,13 @@ class _ProductCardState extends State<ProductCard> with ActionButtonMixin {
                             ...Services().renderProductBadges(
                               context,
                               widget.item,
+                            ),
+                            // Le Voile: "Save X%" computed from the product's
+                            // own prices, or a New/Bestseller label mapped from
+                            // its Shopify tags in the dashboard.
+                            LvProductBadges(
+                              product: widget.item,
+                              compact: width < 180,
                             ),
                           ],
                         ),

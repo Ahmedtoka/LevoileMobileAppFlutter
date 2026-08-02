@@ -66,7 +66,11 @@ class _HomeAppBarState extends State<HomeAppBar> {
         index: 0,
         config: logoConfig as Map<String, dynamic>?,
         builder: (value) {
-          final appModel = Provider.of<AppModel>(context, listen: true);
+          // Not a no-op: `listen: true` SUBSCRIBES this app bar to AppModel, so
+          // it rebuilds when the dashboard config is refetched on resume or on
+          // a `config_update` push. Only the unused assignment was dropped —
+          // deleting the call would freeze the header on the old config.
+          Provider.of<AppModel>(context, listen: true);
           return Selector<CartModel, int>(
             selector: (_, cartModel) => cartModel.totalCartQuantity,
             builder: (context, totalCart, child) {

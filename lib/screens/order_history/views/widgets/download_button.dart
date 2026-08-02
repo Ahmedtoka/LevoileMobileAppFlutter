@@ -4,7 +4,6 @@ import 'package:flux_ui/flux_ui.dart';
 import 'package:inspireui/inspireui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../common/config.dart';
 import '../../../../common/theme/colors.dart';
 import '../../../../models/order/order.dart';
 import '../../../../services/services.dart';

@@ -1,7 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flux_localization/flux_localization.dart';
-import 'package:flux_ui/flux_ui.dart';
 import 'package:inspireui/inspireui.dart';
 
 import '../../../common/constants.dart';

@@ -15,7 +15,7 @@ class AboutScreen extends StatelessWidget {
           'of what modest fashion should look like.\n\n'
           'Over the years, Le Voile expanded globally — importing from Turkey, '
           'Paris, China, India & Dubai, and exporting to the USA & UAE. Born in a '
-          'small shop, the brand now has 21 branches across Egypt and a strong '
+          'small shop, the brand now has 26 branches across Egypt and a strong '
           'presence on Instagram & Facebook. As one of the top leading brands, Le '
           'Voile is distinguished by a mix of well-priced, good-quality products '
           'that fulfil both veiled & unveiled ladies.',

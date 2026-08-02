@@ -13,6 +13,7 @@ import '../card/phone_item.dart';
 import '../card/short_description.dart';
 import '../card/tag_item.dart';
 import '../product/action_button_mixin.dart';
+import '../product/lv_product_badges.dart';
 import '../product/widgets/category_name.dart';
 import '../product/widgets/heart_button.dart';
 import '../product/widgets/title.dart';
@@ -137,6 +138,9 @@ class ProductCard extends StatelessWidget with ActionButtonMixin {
                 fit: ImageTools.boxFit(config.imageBoxfit),
               ),
               ...Services().renderProductBadges(context, product),
+              // Le Voile: "Save X%" from the product's own prices, or a
+              // New/Bestseller label mapped from its Shopify tags.
+              LvProductBadges(product: product),
             ],
           ),
         ),

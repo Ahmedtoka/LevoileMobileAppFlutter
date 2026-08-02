@@ -39,24 +39,36 @@ class WelcomeCouponFlow {
         'shouldShow=${service.shouldShowWelcome.value}');
 
     BuildContext? ctx() => navKey.currentContext;
-    if (ctx() == null || !service.popup.enabled || _shownThisSession) {
-      debugPrint('🎟️[CouponFlow] not showing (ctx=${ctx() != null} '
-          'enabled=${service.popup.enabled})');
+    if (ctx() == null || _shownThisSession) {
+      debugPrint('🎟️[CouponFlow] not showing (ctx=${ctx() != null})');
+      return;
+    }
+    // Le Voile: the branches popup's own enabled flag used to gate this whole
+    // method, so turning the branches campaign off in the dashboard also killed
+    // the online popup. The two campaigns are independent — check each where it
+    // is actually shown.
+    if (!service.popup.enabled) {
+      debugPrint('🎟️[CouponFlow] branches popup disabled — online only');
+      _shownThisSession = true;
+      await _maybeShowOnline(navKey);
       return;
     }
 
     // Case A: we already have an unused, not-yet-dismissed coupon.
     final coupon = service.coupon.value;
     if (coupon != null) {
+      // Le Voile: mark the session as handled in BOTH paths. It used to be set
+      // only when a dialog was actually shown, so a home-screen rebuild (which
+      // happens on every config reload) re-entered this method.
+      _shownThisSession = true;
       if (service.shouldShowWelcome.value != true) {
         debugPrint('🎟️[CouponFlow] CASE A skipped (already dismissed/used)');
         // The branches popup was already seen — still offer the online one.
-        await _maybeShowOnline(ctx());
+        await _maybeShowOnline(navKey);
         return;
       }
       debugPrint('🎟️[CouponFlow] CASE A → showing coupon ${coupon.code}');
-      _shownThisSession = true;
-      service.markWelcomeShown();
+      await service.markWelcomeShown();
       await showDialog<void>(
         context: ctx()!,
         useRootNavigator: true,
@@ -67,7 +79,7 @@ class WelcomeCouponFlow {
           phone: service.accountPhone,
         ),
       );
-      await _maybeShowOnline(ctx());
+      await _maybeShowOnline(navKey);
       await _requestNotification(ctx());
       return;
     }
@@ -79,18 +91,17 @@ class WelcomeCouponFlow {
       // If they logged in / registered during onboarding, use the account
       // phone automatically instead of asking again.
       final accountPhone = service.accountPhone;
-      String? phone = accountPhone;
+      var phone = accountPhone;
       debugPrint('🎟️[CouponFlow] CASE B → '
           '${accountPhone != null ? "auto phone from account" : "asking phone"}');
 
-      if (phone == null) {
-        phone = await showDialog<String>(
-          context: ctx()!,
-          useRootNavigator: true,
-          barrierDismissible: false,
-          builder: (_) => CouponPhoneDialog(popup: service.popup),
-        );
-      }
+      // Only ask when the account has no phone on file.
+      phone ??= await showDialog<String>(
+        context: ctx()!,
+        useRootNavigator: true,
+        barrierDismissible: false,
+        builder: (_) => CouponPhoneDialog(popup: service.popup),
+      );
       if (phone == null || phone.trim().isEmpty || ctx() == null) return;
       final enteredPhone = phone.trim();
 
@@ -110,7 +121,7 @@ class WelcomeCouponFlow {
         return;
       }
 
-      service.markWelcomeShown();
+      await service.markWelcomeShown();
       await showDialog<void>(
         context: ctx()!,
         useRootNavigator: true,
@@ -121,7 +132,7 @@ class WelcomeCouponFlow {
           phone: enteredPhone,
         ),
       );
-      await _maybeShowOnline(ctx());
+      await _maybeShowOnline(navKey);
       await _requestNotification(ctx());
     }
   }
@@ -139,11 +150,32 @@ class WelcomeCouponFlow {
   /// Shows the online (first app-order) coupon popup right AFTER the branches
   /// one, reusing the same phone. No-op if there's no online coupon, it's
   /// disabled, or its code was already dismissed.
-  static Future<void> _maybeShowOnline(BuildContext? ctx) async {
+  static Future<void> _maybeShowOnline(GlobalKey<NavigatorState> navKey) async {
     final service = CouponService.instance;
     final online = service.onlineCoupon.value;
-    if (ctx == null || online == null || !service.shouldShowOnline) return;
-    service.markOnlineShown();
+    if (online == null || !service.shouldShowOnline) return;
+
+    // Le Voile: `await showDialog` returns the moment the previous route is
+    // popped, but its reverse transition is still running. Pushing the second
+    // dialog inside that window let the outgoing barrier swallow it — the
+    // online popup then never appeared even though every guard above passed.
+    // Waiting for the navigator to settle fixes it; iOS's longer modal
+    // transition is why this showed up there and not on Android.
+    await Future<void>.delayed(const Duration(milliseconds: 450));
+    // endOfFrame never completes while the app is backgrounded, so it must not
+    // be awaited unguarded — that would hang this flow indefinitely.
+    await WidgetsBinding.instance.endOfFrame
+        .timeout(const Duration(seconds: 2), onTimeout: () {});
+
+    // Le Voile: re-read the context AFTER the delay — the previously captured
+    // one can be stale by now.
+    final ctx = navKey.currentContext;
+    if (ctx == null) {
+      debugPrint('🎟️[CouponFlow] online: no navigator context');
+      return;
+    }
+    debugPrint('🎟️[CouponFlow] online → showing coupon ${online.code}');
+    await service.markOnlineShown();
     await showDialog<void>(
       context: ctx,
       useRootNavigator: true,
@@ -447,10 +479,10 @@ class _CouponPhoneDialogState extends State<CouponPhoneDialog> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
+                  const Text(
                     'Enter your mobile number to claim your discount coupon.\nYou can redeem it at any Le Voile branch',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    style: TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ],
               ),

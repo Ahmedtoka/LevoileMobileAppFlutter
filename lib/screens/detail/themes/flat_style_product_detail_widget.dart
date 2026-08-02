@@ -19,6 +19,7 @@ import '../mixins/detail_product_mixin.dart';
 import '../mixins/detail_product_price_mixin.dart';
 import '../widgets/buy_button_widget.dart';
 import '../widgets/index.dart';
+import '../widgets/lv_trust_strip.dart';
 import '../widgets/product_size_guide.dart';
 import '../widgets/product_title/product_title_state_ui.dart';
 import 'detail_product_layout.dart';
@@ -241,6 +242,11 @@ class _FlatStyleDetailProductWidgetState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Le Voile: reassurance row (Fast Delivery / Easy
+                        // Returns / Secure Payment / Cash on Delivery), fed by
+                        // the dashboard. Sits directly under the buy buttons,
+                        // above the product copy.
+                        const LvTrustStrip(),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 15.0),
                           child: Column(

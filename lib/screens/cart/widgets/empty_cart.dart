@@ -76,37 +76,29 @@ class EmptyCart extends StatelessWidget {
         child: SizedBox(
           width:
               screenSize.width / (2 / (screenSize.height / screenSize.width)),
-          child: Stack(
+          // Le Voile: the template's green leaves illustration
+          // (assets/images/leaves.png, previously Positioned top-right inside a
+          // Stack here) was removed — it is off-brand green on a magenta app,
+          // same reason the green heart went from the empty wishlist. With it
+          // gone the Stack had one child, so it is now just the Column.
+          child: Column(
             children: <Widget>[
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Image.asset(
-                  'assets/images/leaves.png',
-                  width: 120,
-                  height: 120,
+              const SizedBox(height: 60),
+              Text(
+                S.of(context).yourBagIsEmpty,
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Text(
+                  S.of(context).emptyCartSubtitle,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
                 ),
               ),
-              Column(
-                children: <Widget>[
-                  const SizedBox(height: 60),
-                  Text(
-                    S.of(context).yourBagIsEmpty,
-                    style: Theme.of(context).textTheme.titleMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 30),
-                    child: Text(
-                      S.of(context).emptyCartSubtitle,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 50),
-                ],
-              ),
+              const SizedBox(height: 50),
             ],
           ),
         ),

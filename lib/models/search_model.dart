@@ -41,6 +41,18 @@ class SearchModel extends ChangeNotifier with LanguageMixin {
     notifyListeners();
   }
 
+  /// Le Voile: drop ONE keyword — the ✕ on a recent-search chip.
+  ///
+  /// Writes through to the box even when nothing matched is avoided: without
+  /// the `remove()` result check, tapping ✕ on a chip that had already gone
+  /// would rewrite the box and notify listeners for no reason.
+  void removeKeyword(String keyword, {bool? productType}) {
+    if (!keywords.remove(keyword)) return;
+
+    _saveKeywords(keywords, productType);
+    notifyListeners();
+  }
+
   void clearKeywords({bool? productType}) {
     keywords = [];
     _saveKeywords(keywords, productType);

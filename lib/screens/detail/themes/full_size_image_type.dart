@@ -14,6 +14,7 @@ import '../../../services/services.dart';
 import '../../chat/vendor_chat.dart';
 import '../product_detail_screen.dart';
 import '../widgets/index.dart';
+import '../widgets/lv_trust_strip.dart';
 import '../widgets/product_image_slider.dart';
 import '../widgets/product_size_guide.dart';
 
@@ -196,6 +197,8 @@ class _FullSizeLayoutState extends State<FullSizeLayout>
                                       Services().renderCustomInformationTable(
                                         widget.product ?? Product(),
                                       ),
+                                      // Le Voile: dashboard-driven reassurance row.
+                                      const LvTrustStrip(),
                                       ProductBrand(product: widget.product),
                                       ProductDescription(widget.product),
                                       if (widget.isProductInfoLoading == false)

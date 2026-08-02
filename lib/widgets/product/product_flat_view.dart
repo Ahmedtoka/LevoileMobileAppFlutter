@@ -8,6 +8,7 @@ import '../card/short_description.dart';
 import 'action_button_mixin.dart';
 import 'index.dart'
     show HeartButton, ProductImage, ProductOnSale, ProductPricing, ProductTitle;
+import 'lv_product_badges.dart';
 import 'widgets/category_name.dart';
 
 class ProductFlat extends StatefulWidget {
@@ -163,6 +164,9 @@ class _ProductFlatState extends State<ProductFlat> with ActionButtonMixin {
                           ),
                         ),
                         ...Services().renderProductBadges(context, widget.item),
+                        // Le Voile: "Save X%" from the product's own prices, or a
+                        // New/Bestseller label mapped from its Shopify tags.
+                        LvProductBadges(product: widget.item),
                       ],
                     ),
                     Padding(

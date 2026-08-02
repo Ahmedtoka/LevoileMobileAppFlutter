@@ -278,8 +278,25 @@ class MenuBarState extends State<SideBarMenu> {
       default:
         {
           var item = subDrawerItem[value];
+          // Le Voile: drawer keys are dash-separated and come from two places
+          // with DIFFERENT suffixes, so neither a plain `==` nor the original
+          // `contains()` is right:
+          //   • ConfigBuilder::drawer() emits "{type}-{index}" → "about-3"
+          //   • the bundled fallback configs (lib/config/config_{en,ar}.json)
+          //     emit word suffixes → "title-shop", "category-scarfs",
+          //     "policy-returns", "web-contact", "web-branches"
+          // Matching on segments handles both, and unlike `contains()` it can't
+          // fire on a mere substring (a future type "webinar" no longer hits the
+          // `web` branch, "aboutus" no longer hits `about`).
+          //
+          // Note the Arabic bundled config relies on "web-contact" and
+          // "web-branches" opening the NATIVE screens, so the native checks
+          // below run against any segment and therefore win over `web`.
+          final segments = (value ?? '').split('-');
+          final type = segments.first;
+          bool has(String t) => segments.contains(t);
           // Le Voile native pages.
-          if (value?.contains('contact') ?? false) {
+          if (has('contact')) {
             return ListTile(
               leading: Icon(Icons.headset_mic_rounded,
                   size: 20, color: iconColor),
@@ -287,7 +304,7 @@ class MenuBarState extends State<SideBarMenu> {
               onTap: () => pushNavigator(screen: const ContactScreen()),
             );
           }
-          if (value?.contains('policy') ?? false) {
+          if (has('policy')) {
             return ListTile(
               leading: Icon(Icons.assignment_return_rounded,
                   size: 20, color: iconColor),
@@ -299,7 +316,7 @@ class MenuBarState extends State<SideBarMenu> {
             );
           }
           // Le Voile native pages — My Coupons, Branches, About.
-          if (value?.contains('coupons') ?? false) {
+          if (has('coupons')) {
             return ListTile(
               leading: Icon(Icons.local_activity_rounded,
                   size: 20, color: iconColor),
@@ -307,7 +324,7 @@ class MenuBarState extends State<SideBarMenu> {
               onTap: () => pushNavigator(screen: const MyCouponsScreen()),
             );
           }
-          if (value?.contains('branches') ?? false) {
+          if (has('branches')) {
             return ListTile(
               leading: Icon(Icons.storefront_outlined,
                   size: 20, color: iconColor),
@@ -315,7 +332,7 @@ class MenuBarState extends State<SideBarMenu> {
               onTap: () => pushNavigator(screen: const StoreLocatorScreen()),
             );
           }
-          if (value?.contains('about') ?? false) {
+          if (has('about')) {
             return ListTile(
               leading: Icon(Icons.info_outline_rounded,
                   size: 20, color: iconColor),
@@ -323,7 +340,7 @@ class MenuBarState extends State<SideBarMenu> {
               onTap: () => pushNavigator(screen: const AboutScreen()),
             );
           }
-          if (value?.contains('web') ?? false) {
+          if (type == 'web') {
             return GeneralWebWidget(
               item: item,
               useTile: true,
@@ -332,7 +349,7 @@ class MenuBarState extends State<SideBarMenu> {
               onNavigator: onNavigator,
             );
           }
-          if (value?.contains('post') ?? false) {
+          if (type == 'post') {
             return GeneralPostWidget(
               item: item,
               useTile: true,
@@ -341,13 +358,13 @@ class MenuBarState extends State<SideBarMenu> {
               onNavigator: onNavigator,
             );
           }
-          if (value?.contains('title') ?? false) {
+          if (type == 'title') {
             return GeneralTitleWidget(item: item);
           }
-          if (value?.contains('button') ?? false) {
+          if (type == 'button') {
             return GeneralButtonWidget(item: item, onNavigator: onNavigator);
           }
-          if (value?.contains('product') ?? false) {
+          if (type == 'product') {
             return GeneralProductWidget(
               item: item,
               useTile: true,
@@ -356,7 +373,7 @@ class MenuBarState extends State<SideBarMenu> {
               onNavigator: onNavigator,
             );
           }
-          if (value?.contains('category') ?? false) {
+          if (type == 'category') {
             return GeneralCategoryWidget(
               item: item,
               useTile: true,
@@ -365,10 +382,10 @@ class MenuBarState extends State<SideBarMenu> {
               onNavigator: onNavigator,
             );
           }
-          if (value?.contains('banner') ?? false) {
+          if (type == 'banner') {
             return GeneralBannerWidget(item: item, onNavigator: onNavigator);
           }
-          if (value?.contains('blogCategory') ?? false) {
+          if (type == 'blogCategory') {
             return GeneralBlogCategoryWidget(
               item: item,
               useTile: true,
@@ -377,7 +394,7 @@ class MenuBarState extends State<SideBarMenu> {
               onNavigator: onNavigator,
             );
           }
-          if (value?.contains('blog') ?? false) {
+          if (type == 'blog') {
             return GeneralBlogWidget(
               item: item,
               useTile: true,
@@ -386,7 +403,7 @@ class MenuBarState extends State<SideBarMenu> {
               onNavigator: onNavigator,
             );
           }
-          if (value?.contains('screen') ?? false) {
+          if (type == 'screen') {
             return GeneralScreenWidget(
               item: item,
               useTile: true,

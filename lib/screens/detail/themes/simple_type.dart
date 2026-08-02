@@ -15,6 +15,7 @@ import '../../../widgets/product/widgets/heart_button.dart';
 import '../../chat/vendor_chat.dart';
 import '../widgets/buy_button_widget.dart';
 import '../widgets/index.dart';
+import '../widgets/lv_trust_strip.dart';
 import '../widgets/product_image_list.dart';
 import '../widgets/product_image_slider.dart';
 import '../widgets/product_size_guide.dart';
@@ -272,6 +273,8 @@ class _SimpleLayoutState extends State<SimpleLayout>
                                             ProductBrand(
                                               product: widget.product,
                                             ),
+                                            // Le Voile: dashboard-driven reassurance row.
+                                            const LvTrustStrip(horizontalPadding: 0),
                                             ProductDescription(product),
                                             if (widget.isProductInfoLoading ==
                                                 false)

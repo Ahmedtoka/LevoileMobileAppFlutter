@@ -36,10 +36,15 @@ class AppUpdateInfo {
 
   /// True when the dashboard advertises a newer build and we have somewhere to
   /// send the user (the store link, or a direct APK for testing).
+  ///
+  /// Le Voile: the direct-APK fallback is Android-only — an .apk is useless on
+  /// iOS, so there iOS requires a real App Store link before we tell the user
+  /// an update exists (otherwise a force-update would trap them in a dialog
+  /// with no working button).
   bool get updateAvailable =>
       enabled &&
       latestVersionCode > currentVersionCode &&
-      (storeUrl.isNotEmpty || apkUrl.isNotEmpty);
+      (storeUrl.isNotEmpty || (apkUrl.isNotEmpty && Platform.isAndroid));
 }
 
 /// Le Voile OTA self-update: reads the version gate from the dashboard,
@@ -75,8 +80,11 @@ class AppUpdateService {
   }
 
   Future<AppUpdateInfo?> check() async {
-    // OTA install only makes sense on Android.
-    if (!Platform.isAndroid) return null;
+    // Le Voile: this used to `return null` on anything but Android, so iOS had
+    // NO version gate at all — a broken build could not be forced off the
+    // devices. The direct-APK path stays Android-only (see updateAvailable),
+    // but iOS can and should be sent to the App Store via `iosUrl`.
+    if (!Platform.isAndroid && !Platform.isIOS) return null;
     try {
       final pkg = await PackageInfo.fromPlatform();
       final current = int.tryParse(pkg.buildNumber) ?? 0;
@@ -111,13 +119,27 @@ class AppUpdateService {
           ? '${data['iosUrl'] ?? ''}'.trim()
           : '${data['androidUrl'] ?? ''}'.trim();
 
+      // Le Voile: iOS compares against its OWN build counter. CFBundleVersion
+      // and the Android versionCode are unrelated numbers (App Store uploads
+      // must each be unique), so reusing latestVersionCode on iOS would gate
+      // every iPhone against an Android build number. 0 = no iOS gate, which is
+      // the default until AppLatestBuildIos is set in the dashboard.
+      final latest = Platform.isIOS
+          ? int.tryParse('${data['latestBuildIos'] ?? 0}') ?? 0
+          : int.tryParse('${data['latestVersionCode'] ?? 0}') ?? 0;
+      if (Platform.isIOS && latest <= 0) return null;
+
       return AppUpdateInfo(
         enabled: data['enabled'] == true,
-        latestVersionCode: int.tryParse('${data['latestVersionCode'] ?? 0}') ?? 0,
+        latestVersionCode: latest,
         latestVersionName: '${data['latestVersionName'] ?? ''}',
         apkUrl: '${data['apkUrl'] ?? ''}',
         storeUrl: storeUrl,
-        forceUpdate: data['forceUpdate'] != false, // default to blocking
+        // Le Voile: was `!= false`, i.e. a malformed or partial /app-version
+        // response (missing the key) put every user behind a BLOCKING dialog
+        // they could not dismiss. Fail open instead — the dashboard already
+        // defaults AppForceUpdate to '1', so a real force-update still works.
+        forceUpdate: data['forceUpdate'] == true,
         message: '${data['message'] ?? ''}',
         currentVersionCode: current,
       );

@@ -289,7 +289,13 @@ class AppState extends State<App>
       final base = _dashboardApiBase;
       if (base == null) return;
       // Make sure the stable (hardware-seeded) device id exists first.
-      await CouponService.instance.ensureDeviceId();
+      // Le Voile: bail out if it couldn't be persisted — registering a token
+      // against a throwaway in-memory id just creates an orphan device_tokens
+      // row that can never be matched to this device again.
+      if (!await CouponService.instance.ensureDeviceId()) {
+        debugPrint('🎟️[Device] no stable device id yet — skipping registration');
+        return;
+      }
       final token = await Services().firebase.getMessagingToken();
       if (token == null || token.isEmpty) return;
       await http.post(
@@ -297,7 +303,10 @@ class AppState extends State<App>
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'token': token,
-          'platform': 'android',
+          // Le Voile: was hardcoded to 'android', which mislabelled every iOS
+          // token in the dashboard's device_tokens table (and so in the Devices
+          // screen and any platform-targeted push).
+          'platform': CouponService.instance.platform,
           // Link the FCM token to the persistent device id so the dashboard
           // can target a specific device with a notification.
           'device_id': CouponService.instance.deviceId,

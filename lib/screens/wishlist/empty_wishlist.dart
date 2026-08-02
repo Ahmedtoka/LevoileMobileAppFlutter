@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flux_localization/flux_localization.dart';
-import 'package:flux_ui/flux_ui.dart';
 
-import '../../common/config.dart';
+// Le Voile: flux_ui (FluxImage), common/config.dart (kWishListConfig) and
+// image_tools.dart went with the heart illustration. constants.dart stays —
+// it carries kGrey200/kGrey400 AND re-exports inspireui's
+// `getColorBasedOnBackground`, used on the Start Shopping button below.
 import '../../common/constants.dart';
-import '../../common/tools/image_tools.dart';
 
 class EmptyWishlist extends StatelessWidget {
   final VoidCallback onShowHome;
   final VoidCallback onSearchForItem;
 
   const EmptyWishlist({
+    super.key,
     required this.onShowHome,
     required this.onSearchForItem,
   });
@@ -21,14 +23,11 @@ class EmptyWishlist extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: <Widget>[
+          // Le Voile: the template's green heart illustration
+          // (assets/images/empty_wishlist.png, via kWishListConfig.emptyImage)
+          // was removed — it is off-brand green on a magenta app. The copy
+          // already says "tap any heart", so nothing is lost by dropping it.
           const SizedBox(height: 80),
-          FluxImage(
-            imageUrl: kWishListConfig.emptyImage,
-            fit: ImageTools.boxFit(kWishListConfig.boxFit),
-            width: 120,
-            height: 120,
-          ),
-          const SizedBox(height: 20),
           Text(
             S.of(context).noFavoritesYet,
             style: const TextStyle(fontSize: 18),

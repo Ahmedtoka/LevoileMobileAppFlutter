@@ -180,8 +180,11 @@ Map<String, dynamic> environment = {
   },
   "appRatingConfig": {
     'showOnOpen': false,
-    'android': 'com.inspireui.fluxstore',
-    'ios': '1469772800',
+    // Le Voile: the real listings. These were the FluxStore template's, so
+    // "Rate the app" opened InspireUI's demo app instead of ours.
+    // App Store Connect, 2026-08-02: com.arenahere.levoile / Apple ID 6746816634.
+    'android': 'com.arenahere.levoile',
+    'ios': '6746816634',
     'minDays': 7,
     'minLaunches': 10,
     'remindDays': 7,

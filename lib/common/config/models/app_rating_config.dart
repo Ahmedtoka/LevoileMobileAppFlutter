@@ -4,8 +4,14 @@ const int _defaultMinDays = 7;
 const int _defaultMinLaunches = 10;
 const int _defaultRemindDays = 7;
 const int _defaultRemindLaunches = 10;
-const String _defaultGooglePlayIdentifier = 'com.inspireui.fluxstore';
-const String _defaultAppStoreIdentifier = '1469772800';
+// Le Voile: the real store identifiers, NOT the FluxStore template's.
+//
+// These were `com.inspireui.fluxstore` / `1469772800`, so "Rate the app" sent
+// every customer to InspireVUI's own FluxStore demo listing. Verified against
+// App Store Connect on 2026-08-02: Bundle ID com.arenahere.levoile, Apple ID
+// 6746816634.
+const String _defaultGooglePlayIdentifier = 'com.arenahere.levoile';
+const String _defaultAppStoreIdentifier = '6746816634';
 
 class AppRatingConfig {
   final int minDays;

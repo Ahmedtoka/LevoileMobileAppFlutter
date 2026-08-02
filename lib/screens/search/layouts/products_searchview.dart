@@ -18,7 +18,7 @@ import '../../../models/tag_model.dart';
 import '../../../models/user_model.dart';
 import '../../../services/services.dart';
 import '../widgets/fibo_search_results.dart';
-import '../widgets/recent/recent_search_custom.dart';
+import '../widgets/lv_search_intro.dart';
 import '../widgets/search_box.dart';
 
 class ProductSearchView extends StatefulWidget {
@@ -285,15 +285,44 @@ class _ProductSearchViewState extends State<ProductSearchView>
                                     return Consumer<FilterAttributeModel>(
                                       builder:
                                           (context, attributeModel, child) {
-                                            var child = _buildRecentSearch();
-
-                                            if ((_isFiboSearchEnabled &&
-                                                    _showFiboResults) ||
-                                                suggestSearch.isNotEmpty) {
-                                              child = _buildSuggestions();
+                                            // Le Voile: suggestions win while
+                                            // the customer is mid-word.
+                                            //
+                                            // The keyword check is not
+                                            // redundant: suggestSearch filters
+                                            // with `contains(keyword)`, and
+                                            // EVERY string contains '' — so on
+                                            // an empty field a non-empty
+                                            // suggestion list matched
+                                            // everything and this branch stole
+                                            // the empty state. That happens
+                                            // whenever the app is still on a
+                                            // cached config from before
+                                            // searchSuggestion was emptied, and
+                                            // it rendered the template's
+                                            // "Jersey / Hoodie" demo list where
+                                            // the intro belongs.
+                                            if (_searchKeyword.isNotEmpty &&
+                                                ((_isFiboSearchEnabled &&
+                                                        _showFiboResults) ||
+                                                    suggestSearch.isNotEmpty)) {
+                                              return _buildSuggestions();
                                             }
 
-                                            return child;
+                                            // Otherwise the intro stays up
+                                            // until real results replace it.
+                                            //
+                                            // Do NOT reduce this to
+                                            // `_searchKeyword.isEmpty`: this
+                                            // branch also runs mid-query, when
+                                            // the keyword is set but
+                                            // _showResult is not yet — losing
+                                            // focus inside the 800ms debounce,
+                                            // or tapping a trending chip
+                                            // (_onSubmit unfocuses ~200ms
+                                            // before _showResult flips), would
+                                            // then leave a blank white screen.
+                                            return _buildIntro();
                                           },
                                     );
                                   },
@@ -311,8 +340,14 @@ class _ProductSearchViewState extends State<ProductSearchView>
     );
   }
 
-  Widget _buildRecentSearch() {
-    return RecentSearchesCustom(onTap: _onSubmit);
+  /// Le Voile: recent searches + trending chips + the "Popular Right Now"
+  /// slider. Replaces the stock RecentSearchesCustom, which showed an
+  /// illustration and a "no history" message on first launch.
+  ///
+  /// Stays up until real results replace it, NOT only while the field is
+  /// empty — see the guard in build() for why.
+  Widget _buildIntro() {
+    return LvSearchIntro(onSearch: _onSubmit);
   }
 
   Widget _buildSuggestions() {

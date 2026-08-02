@@ -53,7 +53,7 @@ class LvPopupItem {
         buttonText: json['buttonText']?.toString() ?? '',
         buttonAction: json['buttonAction']?.toString() ?? 'none',
         buttonTarget: json['buttonTarget']?.toString() ?? '',
-        bgColor: json['bgColor']?.toString() ?? '#A51E8C',
+        bgColor: json['bgColor']?.toString() ?? '#9e197e',
         textColor: json['textColor']?.toString() ?? '#FFFFFF',
       );
 }
@@ -153,12 +153,30 @@ class PopupService {
     }
   }
 
+  /// Le Voile: this used to write ALL THREE keys on every show, regardless of
+  /// the item's frequency. The `_shown` bool is only read by `once`, so setting
+  /// it for a `daily` popup meant that later switching that popup to `once` in
+  /// the dashboard made it never show again — the admin had no way to reset it.
+  /// Each frequency now only persists the state it actually reads.
   Future<void> _record(LvPopupItem p) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('popup_${p.id}_shown', true);
-    await prefs.setString('popup_${p.id}_day', _today());
-    final c = prefs.getInt('popup_${p.id}_count') ?? 0;
-    await prefs.setInt('popup_${p.id}_count', c + 1);
+    switch (p.frequency) {
+      case 'every':
+        break; // nothing to remember
+      case 'session':
+        break; // _sessionShown is updated by the caller (in-memory only)
+      case 'daily':
+        await prefs.setString('popup_${p.id}_day', _today());
+        break;
+      case 'count':
+        final c = prefs.getInt('popup_${p.id}_count') ?? 0;
+        await prefs.setInt('popup_${p.id}_count', c + 1);
+        break;
+      case 'once':
+      default:
+        await prefs.setBool('popup_${p.id}_shown', true);
+        break;
+    }
   }
 
   String _today() {

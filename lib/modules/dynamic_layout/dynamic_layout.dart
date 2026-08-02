@@ -18,6 +18,7 @@ import 'blog/blog_grid.dart';
 import 'blog/blog_grid_web.dart';
 import 'brand/brand_layout.dart';
 import 'button/button.dart';
+import 'category/category_highlights.dart';
 import 'category/category_icon.dart';
 import 'category/category_image.dart';
 import 'category/category_menu_with_products.dart';
@@ -28,8 +29,12 @@ import 'config/brand_config.dart';
 import 'config/index.dart';
 import 'divider/divider.dart';
 import 'helper/helper.dart';
-import 'category/category_highlights.dart';
 import 'instagram_story/instagram_story.dart';
+import 'lv/category_pills.dart';
+import 'lv/header_bar.dart';
+import 'lv/hero_banner.dart';
+import 'lv/reels_row.dart';
+import 'lv/ticker_bar.dart';
 import 'product/product_list_simple.dart';
 import 'product/product_recent_placeholder.dart';
 import 'slider_testimonial/index.dart';
@@ -208,6 +213,27 @@ class DynamicLayout extends StatelessWidget {
       // Le Voile — Instagram-style highlights row (dashboard-driven).
       case 'categoryHighlight':
         return CategoryHighlights(config: config);
+
+      // Le Voile: scrolling announcement strip at the top of the home page.
+      case 'lvTicker':
+        return LvTickerBar(config: config);
+
+      // Le Voile: home header — menu · centred wordmark · account + greeting.
+      // Replaces the stock `logo` block on the home page only.
+      case 'lvHeader':
+        return LvHeaderBar(config: config);
+
+      // Le Voile: full-bleed hero photo with headline, CTA and sticker badge.
+      case 'lvHero':
+        return LvHeroBanner(config: config);
+
+      // Le Voile: rounded category pills row (All · Abaya · Scarf …).
+      case 'lvCategoryPills':
+        return LvCategoryPills(config: config);
+
+      // Le Voile: "Follow us on Instagram" reels strip.
+      case 'lvReels':
+        return LvReelsRow(config: config);
 
       case Layout.category:
         if (config['type'] == 'image') {

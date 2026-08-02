@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -163,6 +164,11 @@ class CouponService {
     return kAppConfig.replaceFirst(RegExp(r'/config(/.*)?$'), '');
   }
 
+  /// Le Voile: exposed so device registration in app.dart reports the same
+  /// platform string as the coupon claim — it used to hardcode 'android', so
+  /// every iOS push token was stored as Android in device_tokens.
+  String get platform => _platform();
+
   String _platform() => defaultTargetPlatform == TargetPlatform.iOS
       ? 'ios'
       : 'android';
@@ -192,18 +198,58 @@ class CouponService {
     return id;
   }
 
-  Future<void>? _deviceIdFuture;
+  /// Memoised so concurrent callers share one seeding attempt. Typed
+  /// `Future<bool>` to match ensureDeviceId — the result is what tells a caller
+  /// whether it may safely claim.
+  Future<bool>? _deviceIdFuture;
 
   /// Seeds a STABLE device id from the hardware Android ID on first run, so it
   /// stays the same after reinstalling / clearing data. Idempotent + memoized
   /// so concurrent callers (token register + claim) can't race to a random id.
-  Future<void> ensureDeviceId() =>
-      _deviceIdFuture ??= _ensureStableDeviceId();
+  ///
+  /// Le Voile: the memoized future must never be left in a FAILED state. It
+  /// used to be `_deviceIdFuture ??= _ensureStableDeviceId()`, so if the first
+  /// attempt threw (e.g. the SecureStorage init race), every later caller
+  /// re-awaited that same failed future and rethrew — permanently disabling the
+  /// coupon claim, and with it the online-coupon popup, for the whole session.
+  /// This was the most likely cause of "the online popup never shows on iOS":
+  /// the platform-channel/keychain timing that triggers the race differs
+  /// between Android and iOS. Now failures clear the memo so the next caller
+  /// retries, and _ensureStableDeviceId never throws in the first place.
+  /// Returns true once a stable device id is known.
+  ///
+  /// Callers MUST check the result: returning false means we could not persist
+  /// an id, and going ahead anyway would make `_deviceId()` mint a throwaway
+  /// random one — a brand-new identity on every attempt, which is exactly the
+  /// coupon-farming hole the hardware-seeded id exists to close. Better to skip
+  /// this launch's claim than to claim under a disposable id.
+  Future<bool> ensureDeviceId() {
+    final pending = _deviceIdFuture;
+    if (pending != null) return pending;
+    final future = _ensureStableDeviceId();
+    _deviceIdFuture = future.then((ok) {
+      // Clear the memo on failure so the next caller retries, instead of
+      // re-awaiting a permanently failed future (which used to disable the
+      // coupon flow for the entire session).
+      if (!ok) _deviceIdFuture = null;
+      return ok;
+    }).onError((Object e, StackTrace s) {
+      _deviceIdFuture = null;
+      debugPrint('🎟️[Coupon] ⛔ ensureDeviceId failed (will retry): $e');
+      return false;
+    });
+    return _deviceIdFuture!;
+  }
 
-  Future<void> _ensureStableDeviceId() async {
-    await SecureStorage().init();
+  Future<bool> _ensureStableDeviceId() async {
+    try {
+      await SecureStorage().init();
+    } catch (e) {
+      debugPrint('🎟️[Coupon] ⛔ secure storage init failed: $e');
+      return false;
+    }
     final existing = SecureStorage().get(_kDeviceIdKey);
-    if (existing.isNotEmpty) return; // already decided for this install
+    if (existing.isNotEmpty) return true; // already decided for this install
 
     String? id;
     if (defaultTargetPlatform == TargetPlatform.android) {
@@ -221,8 +267,16 @@ class CouponService {
       }
     }
     id ??= _randomId();
-    SecureStorage().set(_kDeviceIdKey, id);
+    // Le Voile: awaited so the id is durably persisted before the first claim
+    // goes out — a lost write means the next launch mints a different id and
+    // the dashboard treats the same phone/device as new.
+    final stored = await SecureStorage().write(_kDeviceIdKey, id);
+    if (!stored) {
+      debugPrint('🎟️[Coupon] ⛔ could not persist device id — skipping claim');
+      return false;
+    }
     debugPrint('🎟️[Coupon] device id seeded: $id');
+    return true;
   }
 
   /// Re-attempts the claim when the first one failed (e.g. a transient
@@ -232,8 +286,7 @@ class CouponService {
     if (_base == null) return;
     if (coupon.value != null || needsPhone.value) return;
     debugPrint('🎟️[Coupon] retrying claim…');
-    await SecureStorage().init();
-    await ensureDeviceId();
+    if (!await ensureDeviceId()) return;
     await _claim(phone: accountPhone);
   }
 
@@ -242,17 +295,27 @@ class CouponService {
     if (_initialized) return;
     _initialized = true;
 
-    await SecureStorage().init();
-    await ensureDeviceId();
+    // Le Voile: this is called WITHOUT await from app.dart's initState, so any
+    // exception escaping here disappears into runZonedGuarded and the claim
+    // never happens — with no visible error. ensureDeviceId() never throws and
+    // reports failure via its return value instead.
+    final ready = await ensureDeviceId();
     debugPrint('🎟️[Coupon] init  base=$_base  device=${_deviceId()}  '
-        'accountPhone=${accountPhone ?? "none"}');
+        'ready=$ready accountPhone=${accountPhone ?? "none"}');
+    if (!ready) {
+      // No durable id — claiming now would use a throwaway random one.
+      // WelcomeCouponFlow's retry loop calls retryClaim(), which retries this.
+      _initialized = false;
+      return;
+    }
     if (_base == null) {
       debugPrint('🎟️[Coupon] ⛔ no base URL (appConfig not http) — skipping');
       return;
     }
 
-    // Record install / app open for analytics.
-    track('open');
+    // Record install / app open for analytics. Deliberately not awaited —
+    // analytics must never delay the coupon claim.
+    unawaited(track('open'));
 
     await _claim(phone: accountPhone);
   }
@@ -293,9 +356,16 @@ class CouponService {
       if (body['onlinePopup'] != null) {
         onlinePopup = LvPopup.fromJson(body['onlinePopup'] as Map?);
       }
-      onlineCoupon.value = body['onlineCoupon'] != null
-          ? LvCoupon.fromJson(body['onlineCoupon'])
-          : null;
+      // Le Voile: only overwrite when the server actually reported on the
+      // online coupon. The needs_phone / empty responses omit the key entirely,
+      // and blindly assigning null there wiped an online coupon we had already
+      // been granted on an earlier call in the same session (retryClaim runs up
+      // to 5 times from WelcomeCouponFlow.maybeShow).
+      if (body.containsKey('onlineCoupon')) {
+        onlineCoupon.value = body['onlineCoupon'] != null
+            ? LvCoupon.fromJson(body['onlineCoupon'])
+            : null;
+      }
 
       if (body['needs_phone'] == true) {
         needsPhone.value = true;
@@ -364,10 +434,12 @@ class CouponService {
     return coupons.value;
   }
 
-  void markWelcomeShown() {
-    SecureStorage().set(_kWelcomeShownKey, coupon.value?.code ?? '1');
+  /// Le Voile: awaited write — a fire-and-forget set could be lost if the user
+  /// killed the app straight after the popup, re-showing the same coupon.
+  Future<void> markWelcomeShown() async {
     shouldShowWelcome.value = false;
-    track('popup_shown');
+    await SecureStorage().write(_kWelcomeShownKey, coupon.value?.code ?? '1');
+    unawaited(track('popup_shown'));
   }
 
   /// True when the online (first app-order) popup should be shown: we have an
@@ -375,14 +447,29 @@ class CouponService {
   /// been dismissed yet.
   bool get shouldShowOnline {
     final c = onlineCoupon.value;
-    if (c == null || !onlinePopup.enabled || c.used) return false;
+    if (c == null) {
+      debugPrint('🎟️[Coupon] online: no coupon granted by the dashboard '
+          '(check the online pool has available rows and that '
+          'coupon_online_popup_enabled is on)');
+      return false;
+    }
+    if (!onlinePopup.enabled) {
+      debugPrint('🎟️[Coupon] online: popup disabled in the dashboard');
+      return false;
+    }
+    if (c.used) {
+      debugPrint('🎟️[Coupon] online: coupon ${c.code} already used');
+      return false;
+    }
     final dismissed = SecureStorage().get(_kOnlineShownKey);
-    return c.code.isNotEmpty && dismissed != c.code;
+    final show = c.code.isNotEmpty && dismissed != c.code;
+    debugPrint('🎟️[Coupon] online: code=${c.code} dismissed=$dismissed '
+        'show=$show');
+    return show;
   }
 
-  void markOnlineShown() {
-    SecureStorage().set(_kOnlineShownKey, onlineCoupon.value?.code ?? '1');
-  }
+  Future<void> markOnlineShown() =>
+      SecureStorage().write(_kOnlineShownKey, onlineCoupon.value?.code ?? '1');
 
   /// Reports a funnel/presence event to the dashboard, keyed by device id.
   /// event = open | signup | login | popup_shown | heartbeat

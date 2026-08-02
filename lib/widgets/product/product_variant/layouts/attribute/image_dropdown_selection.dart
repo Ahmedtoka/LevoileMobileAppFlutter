@@ -4,11 +4,13 @@ import 'package:flux_ui/flux_ui.dart';
 import '../../../../../common/tools.dart';
 import '../../../widgets/size_guide_button.dart';
 
-/// A chic dropdown-style variant selector for Le Voile.
+/// Le Voile's variant selector.
 ///
-/// Shows an elegant dropdown field with the selected option (thumbnail + name).
-/// Tapping it opens a bottom sheet displaying the variation options with large
-/// images so the shopper can pick by looking at the actual product image.
+/// Shows a row of up to [_maxVisible] thumbnails so the shopper can see the
+/// actual options at a glance instead of a dropdown reading "1". Tapping any
+/// of them opens a bottom sheet with the complete list — the row is a preview,
+/// the sheet is the picker. When there are more options than fit, the last
+/// tile carries a "+N" badge so it is obvious something is hidden.
 class ImageDropdownSelection extends StatelessWidget {
   final Map<String, String?>? imageUrls;
   final List<String?> options;
@@ -27,12 +29,53 @@ class ImageDropdownSelection extends StatelessWidget {
     this.productId,
   });
 
+  /// Four tiles fit a phone at a readable thumbnail size; a fifth makes each
+  /// one too small to tell two similar scarves apart.
+  static const int _maxVisible = 4;
+
   String? _imageFor(String? option) => imageUrls?[option];
+
+  bool _isSelected(String? option) =>
+      option?.toUpperCase() == value?.toUpperCase();
+
+  /// The thumbnails to show, and how many options are NOT among them.
+  ///
+  /// Two things this has to get right:
+  ///
+  /// * When there is overflow, the last of the four tiles is the "+N" tile —
+  ///   it is a tile in its own right, not a badge painted over a thumbnail.
+  ///   Overlaying it hid the option underneath, so the count was short by one
+  ///   and the shopper was told "+8" when nine were unseen.
+  /// * The SELECTED option must always be on screen. A plain `take(3)` meant
+  ///   that picking colour #8 from the sheet left every visible tile unhighlighted
+  ///   and no indication anywhere of what was chosen. If the selection falls
+  ///   outside the window it takes the last thumbnail slot.
+  ({List<String?> tiles, int hidden}) _preview() {
+    if (options.length <= _maxVisible) {
+      return (tiles: options, hidden: 0);
+    }
+
+    const slots = _maxVisible - 1; // three thumbnails + the "+N" tile
+    final tiles = options.take(slots).toList();
+    final selectedIndex = options.indexWhere(_isSelected);
+
+    if (selectedIndex >= slots) {
+      tiles[slots - 1] = options[selectedIndex];
+    }
+
+    return (tiles: tiles, hidden: options.length - slots);
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primary = theme.primaryColor;
+
+    final preview = _preview();
+    final tiles = preview.tiles;
+    final hidden = preview.hidden;
+    // The "+N" tile occupies one of the four slots when it exists.
+    final slotCount = tiles.length + (hidden > 0 ? 1 : 0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,54 +84,74 @@ class ImageDropdownSelection extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Text(
-                title?.capitalize() ?? '',
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    title?.capitalize() ?? '',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (value?.isNotEmpty ?? false) ...[
+                    const SizedBox(width: 8),
+                    // The selected option's own name, which the thumbnails
+                    // cannot show without crowding them.
+                    Flexible(
+                      child: Text(
+                        value!.unescape(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             SideGuideButtonWidget(attribute: title, productId: productId),
           ],
         ),
-        const SizedBox(height: 8),
-        InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () => _openPicker(context),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: theme.colorScheme.secondary.withValueOpacity(0.25),
-              ),
-              color: theme.colorScheme.surface,
-            ),
-            child: Row(
-              children: [
-                if ((_imageFor(value)?.isNotEmpty ?? false)) ...[
-                  FluxImage(
-                    imageUrl: _imageFor(value)!,
-                    width: 34,
-                    height: 34,
-                    fit: BoxFit.cover,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  const SizedBox(width: 10),
-                ],
-                Expanded(
-                  child: Text(
-                    value?.toString().unescape() ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            for (var i = 0; i < tiles.length; i++) ...[
+              if (i > 0) const SizedBox(width: 10),
+              Expanded(
+                child: _Swatch(
+                  option: tiles[i],
+                  image: _imageFor(tiles[i]),
+                  selected: _isSelected(tiles[i]),
+                  onTap: () => _openPicker(context),
                 ),
-                Icon(Icons.keyboard_arrow_down_rounded, color: primary),
-              ],
-            ),
-          ),
+              ),
+            ],
+
+            // The "+N" tile — its own slot, so it never hides a thumbnail.
+            if (hidden > 0) ...[
+              const SizedBox(width: 10),
+              Expanded(
+                child: _MoreTile(
+                  count: hidden,
+                  onTap: () => _openPicker(context),
+                ),
+              ),
+            ],
+
+            // Empty slots keep the tiles square when there are fewer than four,
+            // instead of stretching two thumbnails across the whole screen.
+            // Every slot is flex: 1, so the real tiles keep their 4-up width.
+            for (var i = slotCount; i < _maxVisible; i++) ...[
+              const SizedBox(width: 10),
+              const Expanded(child: SizedBox.shrink()),
+            ],
+          ],
         ),
       ],
     );
@@ -124,12 +187,24 @@ class ImageDropdownSelection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 14),
-                Text(
-                  title?.capitalize() ?? '',
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      title?.capitalize() ?? '',
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${options.length}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: theme.colorScheme.secondary.withValueOpacity(0.5),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 14),
                 Flexible(
@@ -145,9 +220,9 @@ class ImageDropdownSelection extends StatelessWidget {
                     ),
                     itemBuilder: (context, index) {
                       final option = options[index];
-                      final selected =
-                          option?.toUpperCase() == value?.toUpperCase();
+                      final selected = _isSelected(option);
                       final img = _imageFor(option);
+
                       return GestureDetector(
                         onTap: () {
                           Navigator.of(ctx).pop();
@@ -207,6 +282,152 @@ class ImageDropdownSelection extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// One thumbnail in the preview row.
+class _Swatch extends StatelessWidget {
+  final String? option;
+  final String? image;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _Swatch({
+    required this.option,
+    required this.image,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.primaryColor;
+    final hasImage = image?.isNotEmpty ?? false;
+
+    return _Tile(
+      selected: selected,
+      onTap: onTap,
+      child: hasImage
+          ? FluxImage(imageUrl: image!, fit: BoxFit.cover)
+          // No photo on this option — fall back to its name, which is all a
+          // size or a named colour ever has anyway.
+          : Center(
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Text(
+                  option?.toString().unescape() ?? '',
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: selected ? primary : null,
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+}
+
+/// The "+N" tile that opens the full list. A slot of its own — painting it over
+/// a thumbnail hid that option and made the count one short.
+class _MoreTile extends StatelessWidget {
+  final int count;
+  final VoidCallback onTap;
+
+  const _MoreTile({required this.count, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+
+    return _Tile(
+      selected: false,
+      onTap: onTap,
+      child: ColoredBox(
+        color: const Color(0xFFFBF1F3),
+        child: Center(
+          child: Text(
+            // LTR-pinned: '+' is a bidi-neutral character, so in Arabic the
+            // sign would flip to the wrong side and read "8+".
+            '+$count',
+            textDirection: TextDirection.ltr,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: primary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The square, rounded, optionally-highlighted box both tiles sit in.
+class _Tile extends StatelessWidget {
+  final bool selected;
+  final VoidCallback onTap;
+  final Widget child;
+
+  const _Tile({
+    required this.selected,
+    required this.onTap,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final radius = BorderRadius.circular(12);
+
+    return AspectRatio(
+      aspectRatio: 1,
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            child,
+
+            // The ink layer sits ON TOP of the content, not under it.
+            //
+            // Material paints its splash and THEN paints its child, so an
+            // InkWell wrapped around a full-bleed photo or a filled box shows
+            // no ripple at all — it is drawn underneath an opaque widget. The
+            // first version of this row had exactly that and felt dead to tap.
+            Positioned.fill(
+              child: Material(
+                type: MaterialType.transparency,
+                child: InkWell(onTap: onTap),
+              ),
+            ),
+
+            // Border last, so the selection ring is never covered by the photo
+            // or by the splash.
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: radius,
+                    border: Border.all(
+                      color: selected
+                          ? theme.primaryColor
+                          : theme.colorScheme.secondary.withValueOpacity(0.15),
+                      width: selected ? 2 : 1,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

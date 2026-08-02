@@ -23,6 +23,24 @@ class AppSetting {
   late bool showChat;
   TabBarConfig tabBarConfig = kDefaultTabBar;
   Map productColors = {};
+
+  /// Le Voile: maps a Shopify product TAG to the label shown on the product
+  /// card ({"new": "New", "best-seller": "Bestseller"}). Kept as a raw map —
+  /// like productColors above — so merchandising can add a badge from the
+  /// dashboard without an app release. Read by LvProductBadges.
+  Map productBadgeTags = {};
+
+  /// Le Voile: the product-page reassurance strip
+  /// ([{"icon": "delivery", "label": "Fast\nDelivery"}]). Raw list so the
+  /// dashboard can add or reword an item without an app release. Read by
+  /// LvTrustStrip.
+  List productTrustItems = [];
+
+  /// Le Voile: the search screen's empty state — headings, the trending chips,
+  /// and a ready-built product block for "Popular Right Now". Kept as a raw
+  /// Map so the dashboard can reword or restock it without an app release.
+  /// Read by LvSearchIntro.
+  Map lvSearch = {};
   double? ratioProductImage;
   String? copyright;
   late String? productDetail;
@@ -61,6 +79,9 @@ class AppSetting {
     this.support,
     this.downloadApp,
     this.productColors = const {},
+    this.productBadgeTags = const {},
+    this.productTrustItems = const [],
+    this.lvSearch = const {},
   });
 
   AppSetting.fromJson(Map config) {
@@ -86,6 +107,23 @@ class AppSetting {
 
     if (config['ProductColors'] != null && config['ProductColors'] is Map) {
       productColors = config['ProductColors'];
+    }
+
+    // Le Voile: product-card badge labels, keyed by Shopify tag. Without this
+    // the field stays empty forever and LvProductBadges silently falls back to
+    // its built-in defaults, so the dashboard setting does nothing.
+    if (config['ProductBadgeTags'] != null && config['ProductBadgeTags'] is Map) {
+      productBadgeTags = config['ProductBadgeTags'];
+    }
+
+    // Le Voile: product-page trust strip.
+    if (config['ProductTrustItems'] is List) {
+      productTrustItems = config['ProductTrustItems'];
+    }
+
+    // Le Voile: the search screen's empty state.
+    if (config['LvSearch'] is Map) {
+      lvSearch = config['LvSearch'];
     }
 
     if (config['TabBarConfig'] != null) {
@@ -117,6 +155,9 @@ class AppSetting {
     String? copyright,
     TabBarConfig? tabBarConfig,
     Map? productColors,
+    Map? productBadgeTags,
+    List? productTrustItems,
+    Map? lvSearch,
     bool? useMaterial3,
     AgeRestrictionConfig? ageRestrictionConfig,
     SmartEngagementBannerConfig? smartEngagementBannerConfig,
@@ -140,6 +181,9 @@ class AppSetting {
       blogDetail: blogDetail ?? this.blogDetail,
       tabBarConfig: tabBarConfig ?? this.tabBarConfig,
       productColors: productColors ?? this.productColors,
+      productBadgeTags: productBadgeTags ?? this.productBadgeTags,
+      productTrustItems: productTrustItems ?? this.productTrustItems,
+      lvSearch: lvSearch ?? this.lvSearch,
       useMaterial3: useMaterial3 ?? this.useMaterial3,
       ageRestrictionConfig: ageRestrictionConfig ?? this.ageRestrictionConfig,
       smartEngagementBannerConfig:
