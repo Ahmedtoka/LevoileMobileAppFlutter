@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flux_localization/flux_localization.dart';
 import 'package:flux_ui/flux_ui.dart';
+import 'package:inspireui/icons/icon_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../common/config.dart';
@@ -374,6 +375,12 @@ class MenuBarState extends State<SideBarMenu> {
             );
           }
           if (type == 'category') {
+            // Sub-categories come from the dashboard's Categories Tree. Items
+            // without any stay flat tiles, so the drawer only expands where the
+            // tree actually branches.
+            if (item?.children.isNotEmpty ?? false) {
+              return buildCategoryGroup(item!);
+            }
             return GeneralCategoryWidget(
               item: item,
               useTile: true,
@@ -416,6 +423,47 @@ class MenuBarState extends State<SideBarMenu> {
 
         return const SizedBox();
     }
+  }
+
+  /// A curated drawer category that has sub-categories beneath it.
+  ///
+  /// Tapping the row expands or collapses it — it never navigates, so the whole
+  /// row is one predictable target and label-only groups (which have no
+  /// collection of their own to open) behave the same as the rest. Each child
+  /// is a normal [GeneralCategoryWidget], so it navigates through exactly the
+  /// same path as a flat category tile.
+  Widget buildCategoryGroup(GeneralSettingItem item) {
+    return Theme(
+      // ExpansionTile draws a divider above and below when open; the drawer
+      // separates its rows with spacing instead.
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        leading: Icon(
+          iconPicker(item.icon, item.iconFontFamily) ?? Icons.label,
+          size: 20,
+          color: iconColor,
+        ),
+        title: Text(item.title, style: textStyle),
+        iconColor: iconColor,
+        collapsedIconColor: iconColor,
+        // Line the title up with the ListTile rows above and below it.
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+        expandedCrossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final child in item.children)
+            Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: GeneralCategoryWidget(
+                item: child,
+                useTile: true,
+                iconColor: iconColor,
+                textStyle: textStyle,
+                onNavigator: onNavigator,
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   Widget buildListCategory() {

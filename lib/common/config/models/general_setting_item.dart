@@ -38,6 +38,10 @@ class GeneralSettingItem {
   String? screen;
   List<String> roles = [];
 
+  /// Nested drawer rows, e.g. the sub-categories under a category item. Empty
+  /// for every other item, which is what keeps a childless entry a flat tile.
+  List<GeneralSettingItem> children = [];
+
   GeneralSettingItem({
     this.id = defaultId,
     this.title = '',
@@ -68,6 +72,7 @@ class GeneralSettingItem {
     this.screen,
     this.useTabScreen = false,
     this.roles = const [],
+    this.children = const [],
   });
 
   GeneralSettingItem.fromJson(Map json) {
@@ -110,6 +115,12 @@ class GeneralSettingItem {
     if (json['roles'] != null) {
       roles = List<String>.from(json['roles']);
     }
+    if (json['children'] is List) {
+      children = [
+        for (final child in (json['children'] as List))
+          if (child is Map) GeneralSettingItem.fromJson(child),
+      ];
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -149,6 +160,9 @@ class GeneralSettingItem {
     json['useTabScreen'] = useTabScreen;
     if (roles.isNotEmpty) {
       json['roles'] = roles;
+    }
+    if (children.isNotEmpty) {
+      json['children'] = children.map((e) => e.toJson()).toList();
     }
     json.removeWhere((key, value) => value == null);
     return json;
