@@ -5,6 +5,7 @@ import 'package:flux_localization/flux_localization.dart';
 import 'package:flux_ui/flux_ui.dart';
 import 'package:inspireui/inspireui.dart';
 import 'package:provider/provider.dart';
+import 'package:the_apple_sign_in/the_apple_sign_in.dart';
 
 import '../../../app.dart';
 import '../../../common/config.dart';
@@ -15,6 +16,7 @@ import '../../../data/boxes.dart';
 import '../../../models/index.dart';
 import '../../../modules/dynamic_layout/helper/helper.dart';
 import '../../../services/index.dart';
+import '../../../widgets/auth/sign_in_with_apple_button.dart';
 import '../../../widgets/auth/social_login_button_row.dart';
 import '../../../widgets/common/custom_text_field.dart';
 import '../../../widgets/common/login_animation.dart';
@@ -105,6 +107,33 @@ class _LoginPageState extends BaseScreen<LoginScreenMobile>
     super.dispose();
   }
 
+  /// Shopify's hosted login page offers Google and Facebook but has no native
+  /// Sign in with Apple, so App Store guideline 4.8 requires us to present our
+  /// own. Optimistically true on iOS, then confirmed against the device.
+  bool _isAppleSignInAvailable = isIos;
+
+  bool get _showAppleSignIn =>
+      _isAppleSignInAvailable &&
+      kLoginSetting.showAppleLogin &&
+      (kLoginSetting.appleLoginSetting?.bridgeEndpoint?.isNotEmpty ?? false);
+
+  @override
+  Future<void> afterFirstLayout(BuildContext context) async {
+    await super.afterFirstLayout(context);
+    if (!_isAppleSignInAvailable) {
+      return;
+    }
+    try {
+      final available = await TheAppleSignIn.isAvailable();
+      if (!mounted || available == _isAppleSignInAvailable) {
+        return;
+      }
+      setState(() => _isAppleSignInAvailable = available);
+    } catch (err, trace) {
+      printError(err, trace, '[LoginScreen] Apple sign-in availability');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     _parentContext = context;
@@ -114,6 +143,20 @@ class _LoginPageState extends BaseScreen<LoginScreenMobile>
     final themeConfig = appModel.themeConfig;
     final forgetPasswordUrl =
         appModel.appConfig?.forgetPassword ?? ServerConfig().forgetPassword;
+
+    /// Built once and placed in both login modes below. Shopify disables the
+    /// in-app social row entirely (ServerConfig.isSocialLoginSupported is false
+    /// for Shopify), so this button is the app's only guideline 4.8 login
+    /// option — it must not be tied to whichever sign-in mode is configured.
+    final appleSignInButton = _showAppleSignIn
+        ? Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: SignInWithAppleButton(
+              enabled: !isLoading,
+              onPressed: () => loginWithApple(context),
+            ),
+          )
+        : null;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -242,6 +285,7 @@ class _LoginPageState extends BaseScreen<LoginScreenMobile>
                                     onTap: () =>
                                         isLoading ? null : _onTapLogin(),
                                   ),
+                                  ?appleSignInButton,
                                   ],
                                   if (BiometricsTools.instance.isLoginSupported)
                                     Padding(
@@ -274,6 +318,7 @@ class _LoginPageState extends BaseScreen<LoginScreenMobile>
                                               ),
                                       ),
                                     ),
+                                    ?appleSignInButton,
                                     Padding(
                                       padding: const EdgeInsets.only(top: 6),
                                       child: TextButton(

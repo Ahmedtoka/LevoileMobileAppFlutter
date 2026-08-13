@@ -170,8 +170,8 @@ This is a **fresh** iOS app, so you can keep these or change the family to your 
 - **Push Notifications**
 - **App Groups** (`group.com.levoile.stores.onesignal`) — for OneSignal
 - **Associated Domains** — only if Branch/deep links are used
-- **Sign in with Apple** — only if Apple login is offered
-- **Apple Pay / Merchant** — only if Apple Pay is used (otherwise you can remove `iosMerchantId`)
+- **Sign in with Apple** — **required** (see §6.6); enable it on the App ID and regenerate the profile
+- **Apple Pay / Merchant** — the app does **not** implement Apple Pay. `iosMerchantId` and the `com.apple.developer.in-app-payments` entitlement are leftover FluxStore boilerplate; App Review flagged them under guideline 2.1, so state in **Review Notes** that Apple Pay is not implemented (or remove the entitlement).
 
 ### 6.3 Firebase iOS
 `configs/GoogleService-Info.plist` is present for `com.levoile.stores`. Verify it matches an iOS app in Firebase project `levoilestores-93358`; if you change the bundle id, re-register the iOS app and replace this file.
@@ -189,6 +189,31 @@ In Xcode:
 
 ### 6.5 App Store Connect
 Create the app (matching bundle id), add metadata, screenshots (6.7" + 6.5" + 5.5"), and **App Privacy** declarations (the app collects identifiers/usage data via **Firebase Analytics** and the **Meta SDK**). If you enable IDFA-based Meta attribution, add **App Tracking Transparency** (`NSUserTrackingUsageDescription` + the ATT prompt). Submit for review.
+
+### 6.6 Sign in with Apple — required by guideline 4.8
+
+Build 1.6.2 (8) was rejected because Shopify's hosted login page offers Google
+and Facebook but the app had no Sign in with Apple. Shopify's native social
+sign-in supports **only** Google and Facebook, so Apple login goes through our
+own bridge instead.
+
+**Ship checklist — the app build alone is not enough:**
+
+1. Deploy the bridge endpoint to the dashboard (Laravel) — code and env vars in
+   [`server/apple-signin-bridge/`](server/apple-signin-bridge/README.md). It must
+   answer at `https://mobileapp.levoilestores.com/api/v1/auth/apple`, which is
+   what `loginSetting.appleLoginSetting.bridgeEndpoint` in `lib/env.dart` points
+   at. The live config currently returns no `loginSetting` block, so the value in
+   `lib/env.dart` wins — but if the dashboard ever starts sending one it
+   **replaces** `loginSetting` wholesale, and `bridgeEndpoint` must be included
+   there or the Apple button silently disappears.
+2. Enable **Sign in with Apple** on the App ID in the Apple Developer portal and
+   regenerate the provisioning profile — `Runner.entitlements` already declares
+   `com.apple.developer.applesignin`.
+3. Verify the two Shopify assumptions listed in the bridge README (Storefront
+   customer tokens, Admin REST password update) against the live store.
+4. Test on a real device: the Apple button only renders on iOS where
+   `TheAppleSignIn.isAvailable()` returns true.
 
 ---
 

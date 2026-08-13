@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../common/config.dart';
@@ -15,7 +14,6 @@ class AppUpdateInfo {
     required this.enabled,
     required this.latestVersionCode,
     required this.latestVersionName,
-    required this.apkUrl,
     required this.storeUrl,
     required this.forceUpdate,
     required this.message,
@@ -25,30 +23,27 @@ class AppUpdateInfo {
   final bool enabled;
   final int latestVersionCode;
   final String latestVersionName;
-  final String apkUrl;
 
-  /// Play Store / App Store link for this platform. When set, "Update" opens
-  /// the store (which installs + reopens itself) — the production path.
+  /// Play Store / App Store link for this platform. "Update" opens the store
+  /// (which installs + reopens itself) — the only update path, on both
+  /// platforms. A direct-APK sideload path used to exist here for Android but
+  /// was removed: Google Play flags REQUEST_INSTALL_PACKAGES on general
+  /// (non-browser/file-manager/MDM) apps as Device and Network Abuse, and
+  /// blocked publishing over it.
   final String storeUrl;
   final bool forceUpdate;
   final String message;
   final int currentVersionCode;
 
-  /// True when the dashboard advertises a newer build and we have somewhere to
-  /// send the user (the store link, or a direct APK for testing).
-  ///
-  /// Le Voile: the direct-APK fallback is Android-only — an .apk is useless on
-  /// iOS, so there iOS requires a real App Store link before we tell the user
-  /// an update exists (otherwise a force-update would trap them in a dialog
-  /// with no working button).
+  /// True when the dashboard advertises a newer build AND we have a store link
+  /// to send the user to. Without a store link there is nothing for the
+  /// "Update" button to do, so no popup.
   bool get updateAvailable =>
-      enabled &&
-      latestVersionCode > currentVersionCode &&
-      (storeUrl.isNotEmpty || (apkUrl.isNotEmpty && Platform.isAndroid));
+      enabled && latestVersionCode > currentVersionCode && storeUrl.isNotEmpty;
 }
 
-/// Le Voile OTA self-update: reads the version gate from the dashboard,
-/// downloads the new APK (with progress) and hands it to the Android installer.
+/// Le Voile OTA gate: reads the version check from the dashboard and, when a
+/// newer build exists, sends the user to the Play Store / App Store.
 class AppUpdateService {
   AppUpdateService._();
   static final AppUpdateService instance = AppUpdateService._();
@@ -82,8 +77,8 @@ class AppUpdateService {
   Future<AppUpdateInfo?> check() async {
     // Le Voile: this used to `return null` on anything but Android, so iOS had
     // NO version gate at all — a broken build could not be forced off the
-    // devices. The direct-APK path stays Android-only (see updateAvailable),
-    // but iOS can and should be sent to the App Store via `iosUrl`.
+    // devices. Both platforms are sent to their respective store via
+    // `androidUrl` / `iosUrl`.
     if (!Platform.isAndroid && !Platform.isIOS) return null;
     try {
       final pkg = await PackageInfo.fromPlatform();
@@ -133,7 +128,6 @@ class AppUpdateService {
         enabled: data['enabled'] == true,
         latestVersionCode: latest,
         latestVersionName: '${data['latestVersionName'] ?? ''}',
-        apkUrl: '${data['apkUrl'] ?? ''}',
         storeUrl: storeUrl,
         // Le Voile: was `!= false`, i.e. a malformed or partial /app-version
         // response (missing the key) put every user behind a BLOCKING dialog
@@ -146,30 +140,5 @@ class AppUpdateService {
     } catch (_) {
       return null;
     }
-  }
-
-  /// Downloads the APK to a temp path, reporting 0.0–1.0 progress.
-  Future<File> downloadApk(
-    String url,
-    void Function(double progress) onProgress, {
-    CancelToken? cancelToken,
-  }) async {
-    final dir = await getTemporaryDirectory();
-    final path = '${dir.path}/levoile_update.apk';
-    final file = File(path);
-    if (await file.exists()) {
-      await file.delete();
-    }
-
-    await _dio.download(
-      url,
-      path,
-      cancelToken: cancelToken,
-      onReceiveProgress: (received, total) {
-        if (total > 0) onProgress(received / total);
-      },
-    );
-
-    return File(path);
   }
 }

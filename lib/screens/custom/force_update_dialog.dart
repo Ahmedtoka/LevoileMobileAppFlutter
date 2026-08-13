@@ -1,14 +1,12 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/app_update_service.dart';
 
 /// Le Voile force-update popup.
 ///
-/// Flow: message → "Update" → download progress bar → "Install & Restart"
-/// (opens the Android package installer). Blocking when [AppUpdateInfo.forceUpdate].
+/// Flow: message → "Update" → opens the Play Store / App Store listing.
+/// Blocking when [AppUpdateInfo.forceUpdate].
 class ForceUpdateDialog extends StatefulWidget {
   const ForceUpdateDialog({super.key, required this.info});
 
@@ -35,62 +33,20 @@ class ForceUpdateDialog extends StatefulWidget {
   State<ForceUpdateDialog> createState() => _ForceUpdateDialogState();
 }
 
-enum _Stage { idle, downloading, ready, error }
+enum _Stage { idle, error }
 
 class _ForceUpdateDialogState extends State<ForceUpdateDialog> {
   _Stage _stage = _Stage.idle;
-  double _progress = 0;
-  String? _apkPath;
-  final CancelToken _cancel = CancelToken();
 
-  @override
-  void dispose() {
-    if (!_cancel.isCancelled) _cancel.cancel();
-    super.dispose();
-  }
-
-  /// Production: open the Play Store / App Store (it installs + reopens the app
-  /// itself, no "install unknown apps" prompt). Testing: download the APK.
+  /// Opens the Play Store / App Store listing (it installs + reopens the app
+  /// itself, no "install unknown apps" prompt).
   Future<void> _onUpdate() async {
-    final store = widget.info.storeUrl.trim();
-    if (store.isNotEmpty) {
-      final uri = Uri.tryParse(store);
-      if (uri != null) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-        return;
-      }
-    }
-    await _startDownload();
-  }
-
-  Future<void> _startDownload() async {
-    setState(() {
-      _stage = _Stage.downloading;
-      _progress = 0;
-    });
-    try {
-      final file = await AppUpdateService.instance.downloadApk(
-        widget.info.apkUrl,
-        (p) {
-          if (mounted) setState(() => _progress = p);
-        },
-        cancelToken: _cancel,
-      );
-      if (!mounted) return;
-      setState(() {
-        _apkPath = file.path;
-        _stage = _Stage.ready;
-      });
-    } catch (_) {
-      if (!mounted) return;
+    final uri = Uri.tryParse(widget.info.storeUrl.trim());
+    if (uri == null) {
       setState(() => _stage = _Stage.error);
+      return;
     }
-  }
-
-  Future<void> _install() async {
-    final path = _apkPath;
-    if (path == null) return;
-    await OpenFilex.open(path);
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   @override
@@ -170,55 +126,11 @@ class _ForceUpdateDialogState extends State<ForceUpdateDialog> {
           ],
         );
 
-      case _Stage.downloading:
-        final pct = (_progress * 100).clamp(0, 100).toStringAsFixed(0);
-        return Column(
-          children: [
-            Text(
-              'Downloading update… $pct%',
-              style: TextStyle(
-                fontSize: 13.5,
-                color: theme.colorScheme.secondary,
-              ),
-            ),
-            const SizedBox(height: 14),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: _progress == 0 ? null : _progress,
-                minHeight: 8,
-                backgroundColor: primary.withOpacity(0.12),
-                valueColor: AlwaysStoppedAnimation(primary),
-              ),
-            ),
-          ],
-        );
-
-      case _Stage.ready:
-        return Column(
-          children: [
-            Icon(Icons.check_circle_rounded, color: primary, size: 40),
-            const SizedBox(height: 10),
-            Text(
-              'Download complete. Tap Install, confirm the prompt, '
-              'then open Le Voile again.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13.5,
-                height: 1.5,
-                color: theme.colorScheme.secondary,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _primaryButton('Install update', primary, _install),
-          ],
-        );
-
       case _Stage.error:
         return Column(
           children: [
             Text(
-              'Download failed. Please check your connection and try again.',
+              "Couldn't open the store page. Please try again.",
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13.5,
@@ -227,7 +139,7 @@ class _ForceUpdateDialogState extends State<ForceUpdateDialog> {
               ),
             ),
             const SizedBox(height: 20),
-            _primaryButton('Retry', primary, _startDownload),
+            _primaryButton('Retry', primary, _onUpdate),
           ],
         );
     }

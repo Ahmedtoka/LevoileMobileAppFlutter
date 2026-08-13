@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
@@ -6,10 +7,15 @@ import 'package:flux_localization/flux_localization.dart';
 import 'package:flux_ui/flux_ui.dart' as store_model;
 import 'package:flux_ui/flux_ui.dart';
 import 'package:graphql/client.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import '../../../common/config.dart'
-    show kAdvanceConfig, kShopifyPaymentConfig, shopifyCustomerAccountConfig;
+    show
+        kAdvanceConfig,
+        kLoginSetting,
+        kShopifyPaymentConfig,
+        shopifyCustomerAccountConfig;
 import '../../../common/constants.dart';
 import '../../../common/error_codes/error_codes.dart';
 import '../../../data/boxes.dart';
@@ -801,39 +807,125 @@ class ShopifyService extends BaseServices {
         );
       }
 
-      const nRepositories = 50;
-      final options = QueryOptions(
-        document: gql(ShopifyQuery.getCustomerInfo),
-        fetchPolicy: FetchPolicy.networkOnly,
-        variables: <String, dynamic>{
-          'nRepositories': nRepositories,
-          'accessToken': cookie,
-        },
-      );
-
-      final result = await _connector.query(options);
-
-      printLog('result ${result.data}');
-
-      if (result.hasException) {
-        printLog(result.exception.toString());
-        throw Exception(result.exception.toString());
-      }
-
-      final customerData = result.data?['customer'];
-      if (customerData == null) {
-        return null;
-      }
-
-      var user = User.fromShopifyJson(
-        result.data?['customer'] ?? {},
+      return await _getStorefrontUserInfo(
         cookie,
         tokenExpiresAt: tokenExpiresAt,
       );
-      if (user.cookie == null) return null;
-      return user;
     } catch (e) {
       printLog('::::getUserInfo shopify error');
+      printLog(e.toString());
+      rethrow;
+    }
+  }
+
+  /// Load the customer behind a Storefront API customer access token.
+  ///
+  /// Split out of [getUserInfo] so the Sign in with Apple flow can read the
+  /// freshly minted token directly: at that point [UserBox] can still hold the
+  /// previous Customer Account API session, which would send [getUserInfo]
+  /// down the wrong branch.
+  Future<User?> _getStorefrontUserInfo(
+    String cookie, {
+    DateTime? tokenExpiresAt,
+  }) async {
+    const nRepositories = 50;
+    final options = QueryOptions(
+      document: gql(ShopifyQuery.getCustomerInfo),
+      fetchPolicy: FetchPolicy.networkOnly,
+      variables: <String, dynamic>{
+        'nRepositories': nRepositories,
+        'accessToken': cookie,
+      },
+    );
+
+    final result = await _connector.query(options);
+
+    printLog('result ${result.data}');
+
+    if (result.hasException) {
+      printLog(result.exception.toString());
+      throw Exception(result.exception.toString());
+    }
+
+    final customerData = result.data?['customer'];
+    if (customerData == null) {
+      return null;
+    }
+
+    var user = User.fromShopifyJson(
+      customerData,
+      cookie,
+      tokenExpiresAt: tokenExpiresAt,
+    );
+    if (user.cookie == null) return null;
+    return user;
+  }
+
+  /// Sign in with Apple.
+  ///
+  /// Shopify's hosted customer accounts page only offers Google and Facebook as
+  /// social providers, and the Customer Account API has no way to exchange a
+  /// third-party identity token for a session. So [token] (the Apple identity
+  /// token JWT) is posted to our own bridge, which verifies it against Apple's
+  /// public keys, upserts the Shopify customer, and returns a Storefront
+  /// customer access token that the rest of the app already knows how to use.
+  @override
+  Future<User?> loginApple({
+    String? token,
+    String? firstName,
+    String? lastName,
+  }) async {
+    final endpoint = kLoginSetting.appleLoginSetting?.bridgeEndpoint;
+
+    if (endpoint == null || endpoint.isEmpty) {
+      throw Exception('Sign in with Apple is not configured for this store.');
+    }
+    if (token == null || token.isEmpty) {
+      throw Exception('Missing Apple identity token.');
+    }
+
+    try {
+      printLog('::::request loginApple');
+
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'identityToken': token,
+              // Apple only returns the name on the very first authorization,
+              // so forward it when present and let the bridge keep whatever it
+              // already stored otherwise.
+              if (firstName?.isNotEmpty ?? false) 'firstName': firstName,
+              if (lastName?.isNotEmpty ?? false) 'lastName': lastName,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      final body = jsonDecode(response.body);
+
+      if (response.statusCode != 200) {
+        final message = body is Map ? body['message'] : null;
+        throw Exception(message ?? 'Sign in with Apple failed. Please try again.');
+      }
+
+      final String? accessToken = body is Map ? body['accessToken'] : null;
+      if (accessToken == null || accessToken.isEmpty) {
+        throw Exception('Sign in with Apple failed. Please try again.');
+      }
+
+      DateTime? expiresAt;
+      final rawExpiresAt = body is Map ? body['expiresAt'] : null;
+      if (rawExpiresAt is String) {
+        expiresAt = DateTime.tryParse(rawExpiresAt);
+      }
+
+      return await _getStorefrontUserInfo(
+        accessToken,
+        tokenExpiresAt: expiresAt,
+      );
+    } catch (e) {
+      printLog('::::loginApple shopify error');
       printLog(e.toString());
       rethrow;
     }

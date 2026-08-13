@@ -6,7 +6,7 @@ description: Mobile commerce app by Flutter
 # A version number is three numbers separated by dots, like 1.2.43 - followed by an optional build number separated by a +.
 # In Android, build-name is used as versionName while build-number used as versionCode.Read more about Android versioning at https://developer.android.com/studio/publish/versioning
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion. Read more about iOS versioning at https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.6.0+6
+version: 1.6.0+9
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -39,9 +39,8 @@ dependencies:
   hive_ce_flutter: 2.3.4
   http: ^1.2.2
   dio: ^5.7.0
-  # Le Voile force-update (OTA): read installed build + open the downloaded APK.
+  # Le Voile force-update (OTA): read installed build number for the version gate.
   package_info_plus: ^9.0.0
-  open_filex: ^4.5.0
   # Le Voile popups: persist per-popup frequency state (once / daily / count).
   shared_preferences: ^2.5.5
   http_auth: 1.0.4

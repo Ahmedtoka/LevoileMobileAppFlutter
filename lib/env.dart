@@ -15,8 +15,21 @@ Map<String, dynamic> environment = {
     /// Wordpress blog, it could be removed if using the same above url
     'blog': 'https://levoilestores.myshopify.com',
   },
+  /// Le Voile: OFF deliberately.
+  ///
+  /// Shopify's new Customer Accounts sign-in is a hosted page that offers
+  /// Google but has no Sign in with Apple, and its Customer Account API cannot
+  /// mint a session from a third-party identity token — which is what App Store
+  /// guideline 4.8 requires us to provide. So the app uses classic Storefront
+  /// customer auth, and Sign in with Apple goes through our bridge
+  /// (loginSetting.appleLoginSetting.bridgeEndpoint) which returns a Storefront
+  /// customer access token. Both login paths then produce the same token type.
+  ///
+  /// Requires "Classic customer accounts" in Shopify admin
+  /// (Settings -> Customer accounts). Turning this back on will hide Sign in
+  /// with Apple's counterpart flows and re-break guideline 4.8.
   'shopifyCustomerAccountConfig': {
-    'enabled': true,
+    'enabled': false,
     'clientId': '7f5487a1-34ed-41c6-b04d-531064d2c57c',
     'shopId': '85284847908',
   },
@@ -639,6 +652,12 @@ Map<String, dynamic> environment = {
     "appleLoginSetting": {
       "iOSBundleId": "com.inspireui.mstore.flutter",
       "appleAccountTeamID": "S9RPAM8224",
+
+      /// Le Voile: Sign in with Apple bridge. Trades the Apple identity token
+      /// for a Shopify Storefront customer access token. Required by App Store
+      /// guideline 4.8 because Shopify's hosted login offers Google/Facebook
+      /// but has no native Sign in with Apple.
+      "bridgeEndpoint": "https://mobileapp.levoilestores.com/api/v1/auth/apple",
     },
   },
   "oneSignalKey": {"enable": false, "appID": ""},
@@ -1388,8 +1407,15 @@ Map<String, dynamic> environment = {
       "enable": true,
       "serverEndpoint": "https://test-stripe-nine.vercel.app",
     },
+    /// Le Voile: OFF. The app does not implement Apple Pay — checkout hands off
+    /// to Shopify's hosted web checkout (paymentConfig.EnableWebviewCheckout),
+    /// so this native path was never reachable and still carried the FluxStore
+    /// demo merchant id. Leaving it enabled advertised an Apple Pay integration
+    /// that does not exist, which App Review flagged under guideline 2.1.
+    /// The matching com.apple.developer.in-app-payments entitlement has been
+    /// removed from ios/Runner/*.entitlements.
     "applePayConfig": {
-      "enable": true,
+      "enable": false,
       "merchantId": "merchant.com.inspireui.fluxstore",
     },
     "googlePayConfig": {

@@ -11,12 +11,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- Le Voile OTA: install the downloaded APK update.
-         Without this, OpenFilex.open() on the APK downloaded by
-         AppUpdateService is refused by Android and only the Play Store
-         (androidUrl) update path works. Only the comment was committed
-         originally — the permission line itself was missing. -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.CAMERA" tools:node="remove" />
     <!-- READ_EXTERNAL_STORAGE removed: legacy equivalent of READ_MEDIA_*, not needed by this app.
          READ_MEDIA_IMAGES / READ_MEDIA_VIDEO are explicitly stripped so that
