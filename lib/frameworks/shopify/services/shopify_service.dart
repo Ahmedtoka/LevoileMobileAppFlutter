@@ -931,6 +931,60 @@ class ShopifyService extends BaseServices {
     }
   }
 
+  /// Permanently delete the signed-in customer's account.
+  ///
+  /// Required by App Store guideline 5.1.1(v). The Storefront API this app
+  /// signs in with can create and update a customer but has no delete
+  /// mutation — that only exists on the Admin API, whose token must never ship
+  /// inside the app. So [token] (the Storefront customer access token) is
+  /// posted to our own bridge, which uses it to prove which customer is asking
+  /// and then deletes that customer server-side.
+  ///
+  /// The bridge answers 200 only once the account is actually gone, so this
+  /// never reports success for an account that still exists.
+  @override
+  Future<bool> deleteAccount(String token) async {
+    final endpoint = kAdvanceConfig.gdprConfig.deleteAccountEndpoint;
+
+    if (endpoint == null || endpoint.isEmpty) {
+      throw Exception(S.current.somethingWrong);
+    }
+    if (token.isEmpty) {
+      throw Exception(S.current.somethingWrong);
+    }
+
+    try {
+      printLog('::::request deleteAccount');
+
+      final response = await http
+          .post(
+            Uri.parse(endpoint),
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode({'customerAccessToken': token}),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      final body = jsonDecode(response.body);
+
+      if (response.statusCode != 200) {
+        final message = body is Map ? body['message'] : null;
+        throw Exception(message ?? S.current.cannotDeleteAccount);
+      }
+
+      // The caller signs the user out on success, which is what clears the
+      // now-dead access token from the app.
+      if (body is Map && body['success'] == true) {
+        return true;
+      }
+
+      throw Exception(S.current.cannotDeleteAccount);
+    } catch (e) {
+      printLog('::::deleteAccount shopify error');
+      printLog(e.toString());
+      rethrow;
+    }
+  }
+
   @override
   Future<Map<String, dynamic>> updateUserInfo(
     Map<String, dynamic> json,

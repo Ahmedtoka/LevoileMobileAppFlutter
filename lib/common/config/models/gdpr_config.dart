@@ -7,10 +7,19 @@ class GdprConfig {
   final bool showDeleteAccount;
   final String confirmCaptcha;
 
+  /// Where [deleteAccount] posts on Shopify.
+  ///
+  /// Shopify's Storefront API can create and update a customer but cannot
+  /// delete one, and the Admin API token that can must never ship inside the
+  /// app — so deletion goes through our own endpoint. Empty on frameworks whose
+  /// own API deletes accounts directly (WooCommerce/WordPress), which ignore it.
+  final String? deleteAccountEndpoint;
+
   const GdprConfig({
     required this.showPrivacyPolicyFirstTime,
     required this.showDeleteAccount,
     required this.confirmCaptcha,
+    this.deleteAccountEndpoint,
   });
 
   @override
@@ -20,29 +29,34 @@ class GdprConfig {
           runtimeType == other.runtimeType &&
           showPrivacyPolicyFirstTime == other.showPrivacyPolicyFirstTime &&
           showDeleteAccount == other.showDeleteAccount &&
-          confirmCaptcha == other.confirmCaptcha);
+          confirmCaptcha == other.confirmCaptcha &&
+          deleteAccountEndpoint == other.deleteAccountEndpoint);
 
   @override
   int get hashCode =>
       showPrivacyPolicyFirstTime.hashCode ^
       showDeleteAccount.hashCode ^
-      confirmCaptcha.hashCode;
+      confirmCaptcha.hashCode ^
+      deleteAccountEndpoint.hashCode;
 
   @override
   String toString() {
-    return 'GdprConfig{ showPrivacyPolicyFirstTime: $showPrivacyPolicyFirstTime, showDeleteAccount: $showDeleteAccount, confirmCaptcha: $confirmCaptcha,}';
+    return 'GdprConfig{ showPrivacyPolicyFirstTime: $showPrivacyPolicyFirstTime, showDeleteAccount: $showDeleteAccount, confirmCaptcha: $confirmCaptcha, deleteAccountEndpoint: $deleteAccountEndpoint,}';
   }
 
   GdprConfig copyWith({
     bool? showPrivacyPolicyFirstTime,
     bool? showDeleteAccount,
     String? confirmCaptcha,
+    String? deleteAccountEndpoint,
   }) {
     return GdprConfig(
       showPrivacyPolicyFirstTime:
           showPrivacyPolicyFirstTime ?? this.showPrivacyPolicyFirstTime,
       showDeleteAccount: showDeleteAccount ?? this.showDeleteAccount,
       confirmCaptcha: confirmCaptcha ?? this.confirmCaptcha,
+      deleteAccountEndpoint:
+          deleteAccountEndpoint ?? this.deleteAccountEndpoint,
     );
   }
 
@@ -51,6 +65,7 @@ class GdprConfig {
       'showPrivacyPolicyFirstTime': showPrivacyPolicyFirstTime,
       'showDeleteAccount': showDeleteAccount,
       'confirmCaptcha': confirmCaptcha,
+      'deleteAccountEndpoint': deleteAccountEndpoint,
     };
   }
 
@@ -61,6 +76,7 @@ class GdprConfig {
           _kDefaultShowPrivacyPolicyFirstTime,
       showDeleteAccount: map['showDeleteAccount'] ?? _kDefaultShowDeleteAccount,
       confirmCaptcha: map['confirmCaptcha'] ?? _kDefaultCaptcha,
+      deleteAccountEndpoint: map['deleteAccountEndpoint'],
     );
   }
 }

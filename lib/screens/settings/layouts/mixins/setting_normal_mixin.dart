@@ -170,8 +170,13 @@ mixin SettingNormalMixin on DeleteAccountMixin {
     }
   });
 
-  /// Delete account — removed from the Le Voile account page.
-  bool get isShowDeleteAccount => false;
+  /// Delete account.
+  ///
+  /// App Store guideline 5.1.1(v) requires this to be reachable in-app for any
+  /// app that supports account creation — hiding it got version 1.6.2 rejected.
+  /// Only shown while signed in, since there is nothing to delete otherwise.
+  bool get isShowDeleteAccount =>
+      isLoginned && kAdvanceConfig.gdprConfig.showDeleteAccount;
 
   SettingItemWidget? get deleteAccountItem => isShowDeleteAccount
       ? SettingItemWidget(

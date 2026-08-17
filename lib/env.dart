@@ -472,8 +472,18 @@ Map<String, dynamic> environment = {
 
     "gdpr": {
       "showPrivacyPolicyFirstTime": false,
+
+      /// Required by App Store guideline 5.1.1(v): an app that lets users
+      /// create an account must let them delete it in-app. Do not turn this
+      /// off — the last submission was rejected for exactly this.
       "showDeleteAccount": true,
       "confirmCaptcha": "PERMANENTLY DELETE",
+
+      /// Shopify's Storefront API can create and update a customer but cannot
+      /// delete one, so deletion goes through the dashboard bridge, which holds
+      /// the Admin API token. Requires SHOPIFY_ADMIN_TOKEN to be set there.
+      "deleteAccountEndpoint":
+          "https://mobileapp.levoilestores.com/api/v1/account/delete",
     },
 
     /// show order notes in order detail with private notes
