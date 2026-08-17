@@ -959,12 +959,27 @@ class ShopifyService extends BaseServices {
       final response = await http
           .post(
             Uri.parse(endpoint),
-            headers: const {'Content-Type': 'application/json'},
+            headers: const {
+              'Content-Type': 'application/json',
+              // Without this the bridge renders its error pages as HTML
+              // (Laravel only answers in JSON when the client asks for it), and
+              // every failure would come back unparseable.
+              'Accept': 'application/json',
+            },
             body: jsonEncode({'customerAccessToken': token}),
           )
           .timeout(const Duration(seconds: 30));
 
-      final body = jsonDecode(response.body);
+      // A gateway, a rate limiter or a misrouted request can still answer with
+      // HTML, so a body that will not parse has to read as a failed deletion
+      // rather than surfacing a decoding error to the user.
+      dynamic body;
+      try {
+        body = jsonDecode(response.body);
+      } catch (_) {
+        printLog('::::deleteAccount non-JSON response ${response.statusCode}');
+        throw Exception(S.current.cannotDeleteAccount);
+      }
 
       if (response.statusCode != 200) {
         final message = body is Map ? body['message'] : null;
