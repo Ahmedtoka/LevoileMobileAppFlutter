@@ -72,7 +72,7 @@ class WelcomeCouponFlow {
       await showDialog<void>(
         context: ctx()!,
         useRootNavigator: true,
-        barrierDismissible: false,
+        barrierDismissible: true,
         builder: (_) => CouponWelcomeDialog(
           coupon: coupon,
           popup: service.popup,
@@ -95,14 +95,32 @@ class WelcomeCouponFlow {
       debugPrint('🎟️[CouponFlow] CASE B → '
           '${accountPhone != null ? "auto phone from account" : "asking phone"}');
 
+      // Le Voile: claiming a coupon is entirely optional — never re-ask once the
+      // prompt has been dismissed, so the app is not gated behind it.
+      if (accountPhone == null && service.phoneDeclined) {
+        debugPrint('🎟️[CouponFlow] phone prompt previously dismissed — skip');
+        await _maybeShowOnline(navKey);
+        return;
+      }
+
       // Only ask when the account has no phone on file.
       phone ??= await showDialog<String>(
         context: ctx()!,
         useRootNavigator: true,
-        barrierDismissible: false,
+        // Le Voile: MUST stay dismissible. The customer has to be able to close
+        // this and keep using the app without entering a phone number.
+        barrierDismissible: true,
         builder: (_) => CouponPhoneDialog(popup: service.popup),
       );
-      if (phone == null || phone.trim().isEmpty || ctx() == null) return;
+      if (phone == null || phone.trim().isEmpty) {
+        // Dismissed (X, "Not now", or tapping outside) — remember it so we stop
+        // asking, then carry on with the rest of the flow.
+        await service.markPhoneDeclined();
+        debugPrint('🎟️[CouponFlow] phone prompt dismissed — continuing');
+        await _maybeShowOnline(navKey);
+        return;
+      }
+      if (ctx() == null) return;
       final enteredPhone = phone.trim();
 
       final ok = await service.claimWithPhone(enteredPhone);
@@ -125,7 +143,7 @@ class WelcomeCouponFlow {
       await showDialog<void>(
         context: ctx()!,
         useRootNavigator: true,
-        barrierDismissible: false,
+        barrierDismissible: true,
         builder: (_) => CouponWelcomeDialog(
           coupon: granted,
           popup: service.popup,
@@ -179,7 +197,7 @@ class WelcomeCouponFlow {
     await showDialog<void>(
       context: ctx,
       useRootNavigator: true,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (_) => CouponWelcomeDialog(
         coupon: online,
         popup: service.onlinePopup,
@@ -207,139 +225,171 @@ class CouponWelcomeDialog extends StatelessWidget {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 28),
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header gradient
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 26, 20, 22),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [primary, primary.withOpacity(0.78)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    popup.title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+      // Le Voile: cap the width — unconstrained this stretches nearly edge to
+      // edge on iPad — and scroll the body so a short or landscape window can
+      // never push the dismiss button out of reach.
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header gradient
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(20, 26, 20, 22),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [primary, primary.withOpacity(0.78)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    popup.subtitleFor(coupon.discount),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white, fontSize: 15),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
-              child: Column(
-                children: [
-                  Text(
-                    popup.redeem,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: theme.colorScheme.secondary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Coupon code chip
-                  GestureDetector(
-                    onTap: () {
-                      Clipboard.setData(ClipboardData(text: coupon.code));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Coupon code copied'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    },
-                    child: DottedCouponBox(code: coupon.code, primary: primary),
-                  ),
-                  if ((phone ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: primary.withOpacity(0.06),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                  child: Stack(
+                    // The close button sits slightly outside the header
+                    // bounds; without this the Stack would clip it away.
+                    clipBehavior: Clip.none,
+                    children: [
+                      Column(
                         children: [
-                          Icon(Icons.phone_iphone_rounded,
-                              size: 15, color: primary),
-                          const SizedBox(width: 6),
                           Text(
-                            'Linked to $phone',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.secondary,
+                            popup.title,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            popup.subtitleFor(coupon.discount),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                      // Always-present close affordance.
+                      Positioned(
+                        top: -12,
+                        right: -8,
+                        child: IconButton(
+                          tooltip: 'Close',
+                          icon: const Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
                       ),
-                      child: const Text(
-                        'Got it',
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
+                  child: Column(
+                    children: [
+                      Text(
+                        popup.redeem,
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: theme.colorScheme.secondary,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 16),
+                      // Coupon code chip
+                      GestureDetector(
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: coupon.code));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Coupon code copied'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        child: DottedCouponBox(code: coupon.code, primary: primary),
+                      ),
+                      if ((phone ?? '').isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: primary.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.phone_iphone_rounded,
+                                  size: 15, color: primary),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Linked to $phone',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.secondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text(
+                            'Got it',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        popup.note,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.4,
+                          color: theme.colorScheme.secondary,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    popup.note,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      height: 1.4,
-                      color: theme.colorScheme.secondary,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -447,106 +497,154 @@ class _CouponPhoneDialogState extends State<CouponPhoneDialog> {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 28),
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [primary, primary.withOpacity(0.78)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    widget.popup.title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 21,
-                      fontWeight: FontWeight.w800,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+      // Le Voile: cap the width so this doesn't stretch across an iPad, and
+      // scroll the body so the keyboard can never cover the dismiss controls.
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [primary, primary.withOpacity(0.78)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Enter your mobile number to claim your discount coupon.\nYou can redeem it at any Le Voile branch',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    keyboardType: TextInputType.phone,
-                    // autofocus is intentionally omitted here; focus is
-                    // requested explicitly in initState via addPostFrameCallback
-                    // so the software keyboard appears reliably on iPad as well.
-                    // Digits only, capped at 11 — can't type 10 or 12.
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(11),
+                  child: Stack(
+                    // The close button sits slightly outside the header
+                    // bounds; without this the Stack would clip it away.
+                    clipBehavior: Clip.none,
+                    children: [
+                      Column(
+                        children: [
+                          Text(
+                            widget.popup.title,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 21,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Enter your mobile number to claim your discount '
+                            'coupon.\nYou can redeem it at any Le Voile branch.'
+                            '\nThis is optional — you can skip it and keep '
+                            'shopping.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      // Le Voile: the ONLY way out of this dialog used to be a
+                      // valid 11-digit Egyptian number, which left anyone
+                      // without one (App Store review included) stuck on the
+                      // home screen. Closing must always be possible.
+                      Positioned(
+                        top: -12,
+                        right: -8,
+                        child: IconButton(
+                          tooltip: 'Close',
+                          icon: const Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ),
                     ],
-                    onChanged: (_) {
-                      if (_error != null) setState(() => _error = null);
-                    },
-                    onSubmitted: (_) => _submit(),
-                    decoration: InputDecoration(
-                      hintText: 'e.g. 01XXXXXXXXX',
-                      prefixIcon: const Icon(Icons.phone_rounded),
-                      errorText: _error,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: primary, width: 1.6),
-                      ),
-                    ),
                   ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        keyboardType: TextInputType.phone,
+                        // autofocus is intentionally omitted here; focus is
+                        // requested explicitly in initState via addPostFrameCallback
+                        // so the software keyboard appears reliably on iPad as well.
+                        // Digits only, capped at 11 — can't type 10 or 12.
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(11),
+                        ],
+                        onChanged: (_) {
+                          if (_error != null) setState(() => _error = null);
+                        },
+                        onSubmitted: (_) => _submit(),
+                        decoration: InputDecoration(
+                          hintText: 'e.g. 01XXXXXXXXX',
+                          prefixIcon: const Icon(Icons.phone_rounded),
+                          errorText: _error,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: primary, width: 1.6),
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        'Get my coupon',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text(
+                            'Get my coupon',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 4),
+                      // Second, explicit way out — a lone "X" is easy to miss,
+                      // and skipping has to be unmistakable.
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(
+                          'Not now',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.secondary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

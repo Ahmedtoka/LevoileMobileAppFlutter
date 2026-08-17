@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../services/coupon_service.dart';
+import 'coupon_welcome_dialog.dart';
 
 /// Le Voile — "My Coupons" page in My Account. Shows the device's welcome
 /// coupon and whether it is still valid (unused) or already redeemed (used).
@@ -18,6 +19,47 @@ class _MyCouponsScreenState extends State<MyCouponsScreen> {
     super.initState();
     // Pull the latest used/unused status from the dashboard.
     CouponService.instance.refresh();
+  }
+
+  /// Le Voile: claiming from here is the recovery path for anyone who closed
+  /// the welcome popup without entering a phone — the prompt is optional and
+  /// never shown again on launch once dismissed, so it has to be reachable.
+  Future<void> _claimNow() async {
+    final service = CouponService.instance;
+    final phone = service.accountPhone ??
+        await showDialog<String>(
+          context: context,
+          barrierDismissible: true,
+          builder: (_) => CouponPhoneDialog(popup: service.popup),
+        );
+    if (phone == null || phone.trim().isEmpty || !mounted) return;
+
+    await service.clearPhoneDeclined();
+    final ok = await service.claimWithPhone(phone.trim());
+    final granted = service.coupon.value;
+    if (!mounted) return;
+    if (!ok || granted == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Sorry, no coupon is available right now. Please try again later.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    await service.markWelcomeShown();
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => CouponWelcomeDialog(
+        coupon: granted,
+        popup: service.popup,
+        phone: phone.trim(),
+      ),
+    );
   }
 
   @override
@@ -85,6 +127,29 @@ class _MyCouponsScreenState extends State<MyCouponsScreen> {
               'Your welcome coupon will appear here.',
               textAlign: TextAlign.center,
               style: TextStyle(color: theme.colorScheme.secondary),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 48,
+              child: ElevatedButton(
+                onPressed: _claimNow,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Get my coupon',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

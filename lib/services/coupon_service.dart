@@ -111,6 +111,10 @@ class CouponService {
   static const _kWelcomeShownKey = 'lv_coupon_welcome_code';
   // Same idea for the online (first app-order) coupon popup.
   static const _kOnlineShownKey = 'lv_coupon_online_code';
+  // Set when the customer closed the phone prompt without claiming. Claiming is
+  // optional, so once dismissed we must not ask again on every launch — the
+  // coupon stays claimable on demand from My Account → My Coupons.
+  static const _kPhoneDeclinedKey = 'lv_coupon_phone_declined';
 
   /// Welcome coupon (null = none/unavailable). Used by the popup.
   final ValueNotifier<LvCoupon?> coupon = ValueNotifier<LvCoupon?>(null);
@@ -470,6 +474,19 @@ class CouponService {
 
   Future<void> markOnlineShown() =>
       SecureStorage().write(_kOnlineShownKey, onlineCoupon.value?.code ?? '1');
+
+  /// True when the customer already closed the phone prompt without claiming.
+  /// The welcome flow then stops asking on launch; My Coupons still offers it.
+  bool get phoneDeclined => SecureStorage().get(_kPhoneDeclinedKey) == '1';
+
+  /// Remembers that the (entirely optional) phone prompt was dismissed.
+  Future<void> markPhoneDeclined() =>
+      SecureStorage().write(_kPhoneDeclinedKey, '1');
+
+  /// Called when the customer chooses to claim later from My Coupons, so the
+  /// prompt is allowed to appear again.
+  Future<void> clearPhoneDeclined() =>
+      SecureStorage().write(_kPhoneDeclinedKey, '');
 
   /// Reports a funnel/presence event to the dashboard, keyed by device id.
   /// event = open | signup | login | popup_shown | heartbeat
