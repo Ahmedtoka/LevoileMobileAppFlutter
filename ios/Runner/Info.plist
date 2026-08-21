@@ -217,9 +217,15 @@
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
-		<string>fetch</string>
+		<!-- `fetch` removed: nothing in the app implements background fetch, and
+		     declaring an unused background mode is a guideline 2.5.4 rejection. -->
 		<string>remote-notification</string>
 	</array>
+	<!-- local_auth is linked, and iOS TERMINATES an app that touches the
+	     biometric API without this key. Android already strips USE_BIOMETRIC,
+	     so the path should be unreachable — this is the seatbelt. -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>Le Voile uses Face ID only to unlock your saved sign-in on this device.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

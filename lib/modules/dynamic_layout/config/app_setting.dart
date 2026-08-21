@@ -41,6 +41,17 @@ class AppSetting {
   /// Map so the dashboard can reword or restock it without an app release.
   /// Read by LvSearchIntro.
   Map lvSearch = {};
+
+  /// Le Voile: wording + colours of the product-card chips, from
+  /// Setting.ProductBadges. The discount PERCENTAGE is not in here — the app
+  /// computes it from the product's own prices so it can never disagree with
+  /// what the customer is charged. Read by LvProductBadges.
+  Map productBadges = {};
+
+  /// Le Voile: the small "Version 1.6.0" line at the bottom of the login
+  /// screen, from Setting.LvLoginVersion. Wording and visibility only — the
+  /// number itself is read from the installed build. Read by LvVersionLabel.
+  Map loginVersion = {};
   double? ratioProductImage;
   String? copyright;
   late String? productDetail;
@@ -82,6 +93,8 @@ class AppSetting {
     this.productBadgeTags = const {},
     this.productTrustItems = const [],
     this.lvSearch = const {},
+    this.productBadges = const {},
+    this.loginVersion = const {},
   });
 
   AppSetting.fromJson(Map config) {
@@ -126,6 +139,16 @@ class AppSetting {
       lvSearch = config['LvSearch'];
     }
 
+    // Le Voile: product-card chip wording and colours.
+    if (config['ProductBadges'] is Map) {
+      productBadges = config['ProductBadges'];
+    }
+
+    // Le Voile: the login screen's version line.
+    if (config['LvLoginVersion'] is Map) {
+      loginVersion = config['LvLoginVersion'];
+    }
+
     if (config['TabBarConfig'] != null) {
       tabBarConfig = TabBarConfig.fromJson(config['TabBarConfig']);
     }
@@ -158,6 +181,8 @@ class AppSetting {
     Map? productBadgeTags,
     List? productTrustItems,
     Map? lvSearch,
+    Map? productBadges,
+    Map? loginVersion,
     bool? useMaterial3,
     AgeRestrictionConfig? ageRestrictionConfig,
     SmartEngagementBannerConfig? smartEngagementBannerConfig,
@@ -184,6 +209,8 @@ class AppSetting {
       productBadgeTags: productBadgeTags ?? this.productBadgeTags,
       productTrustItems: productTrustItems ?? this.productTrustItems,
       lvSearch: lvSearch ?? this.lvSearch,
+      productBadges: productBadges ?? this.productBadges,
+      loginVersion: loginVersion ?? this.loginVersion,
       useMaterial3: useMaterial3 ?? this.useMaterial3,
       ageRestrictionConfig: ageRestrictionConfig ?? this.ageRestrictionConfig,
       smartEngagementBannerConfig:

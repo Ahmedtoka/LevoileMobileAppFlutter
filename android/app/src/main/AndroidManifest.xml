@@ -11,6 +11,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Le Voile OTA: REQUEST_INSTALL_PACKAGES is DELIBERATELY NOT declared.
+         Google Play restricts it to apps whose core function is installing
+         other apps; a fashion store declaring it needs a policy declaration
+         form and risks the upload being refused. The consequence is that
+         AppUpdateService's direct-APK path cannot work — so the dashboard MUST
+         keep a Play Store URL set (App Update -> Store links), which is the
+         path that does work and the one Play expects. Only add this permission
+         back for a sideloaded build that never goes to the store. -->
     <uses-permission android:name="android.permission.CAMERA" tools:node="remove" />
     <!-- READ_EXTERNAL_STORAGE removed: legacy equivalent of READ_MEDIA_*, not needed by this app.
          READ_MEDIA_IMAGES / READ_MEDIA_VIDEO are explicitly stripped so that

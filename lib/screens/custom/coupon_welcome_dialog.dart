@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -33,10 +34,15 @@ class WelcomeCouponFlow {
       }
       await Future<void>.delayed(const Duration(seconds: 1));
     }
-    debugPrint('🎟️[CouponFlow] resolved: coupon=${service.coupon.value?.code} '
-        'needsPhone=${service.needsPhone.value} '
-        'popupEnabled=${service.popup.enabled} '
-        'shouldShow=${service.shouldShowWelcome.value}');
+    // debugPrint is NOT stripped in release, and this line carries the
+    // customer's coupon code. Diagnostics stay in debug, where every coupon
+    // investigation has actually happened.
+    if (kDebugMode) {
+      debugPrint('🎟️[CouponFlow] resolved: coupon=${service.coupon.value?.code} '
+          'needsPhone=${service.needsPhone.value} '
+          'popupEnabled=${service.popup.enabled} '
+          'shouldShow=${service.shouldShowWelcome.value}');
+    }
 
     BuildContext? ctx() => navKey.currentContext;
     if (ctx() == null || _shownThisSession) {
@@ -67,7 +73,7 @@ class WelcomeCouponFlow {
         await _maybeShowOnline(navKey);
         return;
       }
-      debugPrint('🎟️[CouponFlow] CASE A → showing coupon ${coupon.code}');
+      if (kDebugMode) debugPrint('🎟️[CouponFlow] CASE A → showing coupon ${coupon.code}');
       await service.markWelcomeShown();
       await showDialog<void>(
         context: ctx()!,
@@ -201,7 +207,9 @@ class WelcomeCouponFlow {
       debugPrint('🎟️[CouponFlow] online: no navigator context');
       return;
     }
-    debugPrint('🎟️[CouponFlow] online → showing coupon ${online.code}');
+    if (kDebugMode) {
+      debugPrint('🎟️[CouponFlow] online → showing coupon ${online.code}');
+    }
     await service.markOnlineShown();
     await showDialog<void>(
       context: ctx,

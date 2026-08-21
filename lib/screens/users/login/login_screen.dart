@@ -20,6 +20,7 @@ import '../../../widgets/auth/sign_in_with_apple_button.dart';
 import '../../../widgets/auth/social_login_button_row.dart';
 import '../../../widgets/common/custom_text_field.dart';
 import '../../../widgets/common/login_animation.dart';
+import '../../../widgets/common/lv_version_label.dart';
 import '../../base_screen.dart';
 import '../mixins/base_auth_mixin.dart';
 import '../mixins/social_login_mixin.dart';
@@ -389,6 +390,14 @@ class _LoginPageState extends BaseScreen<LoginScreenMobile>
                               ),
                             ),
                           ),
+                          // Le Voile: small grey build number, pinned under the
+                          // form. A SIBLING of the two Expandeds, not a child of
+                          // the scroll view above — that one is
+                          // NeverScrollableScrollPhysics, which clips silently
+                          // (no overflow stripe, no exception), so on a short
+                          // screen or at a large text scale the label would just
+                          // never appear and read as "you didn't build it".
+                          const LvVersionLabel(),
                         ],
                       ),
                     ),

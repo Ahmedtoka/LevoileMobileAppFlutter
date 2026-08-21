@@ -58,6 +58,8 @@ class LvHeaderBar extends StatelessWidget {
   double get _logoSize {
     final raw = config['logoSize'];
     final v = raw is num ? raw.toDouble() : double.tryParse('$raw') ?? 46.0;
+    // See hero_banner: "NaN" parses, and a NaN size throws in layout.
+    if (!v.isFinite) return 46.0;
     return v.clamp(24.0, 96.0);
   }
 

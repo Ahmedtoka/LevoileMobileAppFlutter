@@ -116,7 +116,9 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     _stat('2004', 'Since', primary),
                     _divider(theme),
-                    _stat('21', 'Branches', primary),
+                    // 26, matching store_locator_screen.dart. The prose above
+                    // and this chip disagreed on the same screen.
+                    _stat('26', 'Branches', primary),
                     _divider(theme),
                     _stat('400+', 'Team', primary),
                   ],

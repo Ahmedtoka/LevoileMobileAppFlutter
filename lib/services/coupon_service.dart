@@ -115,6 +115,11 @@ class CouponService {
   // optional, so once dismissed we must not ask again on every launch — the
   // coupon stays claimable on demand from My Account → My Coupons.
   static const _kPhoneDeclinedKey = 'lv_coupon_phone_declined';
+  // Last revision the server reported. Persisted so an OFFLINE launch keeps
+  // comparing dismissals against the same number the last successful claim
+  // saw — otherwise popupRevision falls back to 0, stops matching the stored
+  // "3|declined", and the phone prompt reappears on every offline launch.
+  static const _kPopupRevisionKey = 'lv_coupon_popup_revision';
 
   /// Welcome coupon (null = none/unavailable). Used by the popup.
   final ValueNotifier<LvCoupon?> coupon = ValueNotifier<LvCoupon?>(null);
@@ -131,6 +136,17 @@ class CouponService {
 
   /// Popup texts/enabled flag from the dashboard.
   LvPopup popup = LvPopup.fallback;
+
+  /// Le Voile: how many times the dashboard has asked for the popups to be
+  /// shown again ("Show again" on Coupons → Popups).
+  ///
+  /// A popup is remembered as dismissed by its coupon CODE, which is the right
+  /// rule — a re-issued code should re-appear — but it also means an unchanged
+  /// campaign can never be shown to the same device twice, so testing meant
+  /// clearing app data on a handset. Dismissals are stored as "<revision>|<code>"
+  /// instead, so bumping this on the server brings both popups back everywhere.
+  /// Absent key ⇒ 0, which is exactly what old installs already hold.
+  int popupRevision = 0;
 
   /// Online (first app-order) coupon + its popup config. Shown right AFTER the
   /// branches popup, using the same phone.
@@ -279,7 +295,7 @@ class CouponService {
       debugPrint('🎟️[Coupon] ⛔ could not persist device id — skipping claim');
       return false;
     }
-    debugPrint('🎟️[Coupon] device id seeded: $id');
+    if (kDebugMode) debugPrint('🎟️[Coupon] device id seeded: $id');
     return true;
   }
 
@@ -303,8 +319,12 @@ class CouponService {
     // exception escaping here disappears into runZonedGuarded and the claim
     // never happens — with no visible error. ensureDeviceId() never throws and
     // reports failure via its return value instead.
+    // Restore the last-known revision BEFORE anything reads a dismissal, so a
+    // launch with no network behaves like the last one that had it.
+    popupRevision = int.tryParse(SecureStorage().get(_kPopupRevisionKey)) ?? 0;
+
     final ready = await ensureDeviceId();
-    debugPrint('🎟️[Coupon] init  base=$_base  device=${_deviceId()}  '
+    if (kDebugMode) debugPrint('🎟️[Coupon] init  base=$_base  device=${_deviceId()}  '
         'ready=$ready accountPhone=${accountPhone ?? "none"}');
     if (!ready) {
       // No durable id — claiming now would use a throwaway random one.
@@ -351,10 +371,26 @@ class CouponService {
           )
           .timeout(const Duration(seconds: 6));
 
-      debugPrint('🎟️[Coupon] claim status=${res.statusCode} body=${res.body}');
+      // debugPrint is NOT stripped in release, and this body carries the
+      // customer's coupon code and their (masked, but still) phone number.
+      // Status only in production; the full body stays available in debug,
+      // which is where every coupon investigation has actually happened.
+      if (kDebugMode) {
+        debugPrint('🎟️[Coupon] claim status=${res.statusCode} body=${res.body}');
+      } else {
+        debugPrint('🎟️[Coupon] claim status=${res.statusCode}');
+      }
       if (res.statusCode != 200) return;
       final body = jsonDecode(res.body);
       popup = LvPopup.fromJson(body['popup'] as Map?);
+      // Read before either dismissal check below — the stamp has to be current
+      // or "Show again" only takes effect on the launch AFTER the next one.
+      final rev = body['popupRevision'];
+      final parsed = rev is int ? rev : int.tryParse('$rev');
+      if (parsed != null) {
+        popupRevision = parsed;
+        unawaited(SecureStorage().write(_kPopupRevisionKey, '$parsed'));
+      }
 
       // Online (first app-order) coupon — claimed with the same phone.
       if (body['onlinePopup'] != null) {
@@ -389,14 +425,14 @@ class CouponService {
           if (popup.enabled &&
               coupon.value?.used == false &&
               code.isNotEmpty &&
-              dismissedCode != code) {
+              dismissedCode != _stamp(code)) {
             shouldShowWelcome.value = true;
           }
-          debugPrint('🎟️[Coupon] → coupon=$code used=${coupon.value?.used} '
+          if (kDebugMode) debugPrint('🎟️[Coupon] → coupon=$code used=${coupon.value?.used} '
               'popupEnabled=${popup.enabled} dismissed=$dismissedCode '
               'shouldShow=${shouldShowWelcome.value}');
         } else {
-          debugPrint('🎟️[Coupon] → granted coupon=${coupon.value?.code} '
+          if (kDebugMode) debugPrint('🎟️[Coupon] → granted coupon=${coupon.value?.code} '
               '(from phone entry)');
         }
       }
@@ -442,7 +478,7 @@ class CouponService {
   /// killed the app straight after the popup, re-showing the same coupon.
   Future<void> markWelcomeShown() async {
     shouldShowWelcome.value = false;
-    await SecureStorage().write(_kWelcomeShownKey, coupon.value?.code ?? '1');
+    await SecureStorage().write(_kWelcomeShownKey, _stamp(coupon.value?.code));
     unawaited(track('popup_shown'));
   }
 
@@ -464,26 +500,38 @@ class CouponService {
       return false;
     }
     if (c.used) {
-      debugPrint('🎟️[Coupon] online: coupon ${c.code} already used');
+      if (kDebugMode) debugPrint('🎟️[Coupon] online: coupon ${c.code} already used');
       return false;
     }
     final dismissed = SecureStorage().get(_kOnlineShownKey);
-    final show = c.code.isNotEmpty && dismissed != c.code;
-    debugPrint('🎟️[Coupon] online: code=${c.code} dismissed=$dismissed '
+    final show = c.code.isNotEmpty && dismissed != _stamp(c.code);
+    if (kDebugMode) debugPrint('🎟️[Coupon] online: code=${c.code} dismissed=$dismissed '
         'show=$show');
     return show;
   }
 
   Future<void> markOnlineShown() =>
-      SecureStorage().write(_kOnlineShownKey, onlineCoupon.value?.code ?? '1');
+      SecureStorage().write(_kOnlineShownKey, _stamp(onlineCoupon.value?.code));
+
+  /// What a dismissal is recorded as: the code, scoped to the dashboard's
+  /// "show again" round. Either changing re-opens the popup.
+  String _stamp(String? code) =>
+      '$popupRevision|${(code ?? '').isEmpty ? '1' : code}';
 
   /// True when the customer already closed the phone prompt without claiming.
   /// The welcome flow then stops asking on launch; My Coupons still offers it.
-  bool get phoneDeclined => SecureStorage().get(_kPhoneDeclinedKey) == '1';
+  ///
+  /// Scoped to the popup revision like the two dismissal keys. It was a bare
+  /// '1', which made "Show the popups again" a half-measure: everyone who had
+  /// declined the phone prompt — the majority, since it is optional — returns
+  /// here BEFORE the welcome dialog, so only the online popup came back while
+  /// the dashboard promised both.
+  bool get phoneDeclined =>
+      SecureStorage().get(_kPhoneDeclinedKey) == _stamp('declined');
 
   /// Remembers that the (entirely optional) phone prompt was dismissed.
   Future<void> markPhoneDeclined() =>
-      SecureStorage().write(_kPhoneDeclinedKey, '1');
+      SecureStorage().write(_kPhoneDeclinedKey, _stamp('declined'));
 
   /// Called when the customer chooses to claim later from My Coupons, so the
   /// prompt is allowed to appear again.

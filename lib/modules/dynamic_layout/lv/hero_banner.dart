@@ -39,6 +39,10 @@ class LvHeroBanner extends StatelessWidget {
     final h = raw is num
         ? raw.toDouble()
         : double.tryParse('$raw') ?? 390.0;
+    // double.tryParse accepts the literal strings "NaN" and "Infinity", and
+    // NaN survives clamp() — a NaN height throws in layout, which release
+    // renders as a blank frozen screen. Same guard as LvProductBadges.
+    if (!h.isFinite) return 390.0;
     return h.clamp(160.0, 700.0);
   }
 
@@ -196,6 +200,7 @@ class _StickerBadge extends StatelessWidget {
   double get _size {
     final raw = badge['size'];
     final v = raw is num ? raw.toDouble() : double.tryParse('$raw') ?? 76.0;
+    if (!v.isFinite) return 76.0;
     return v.clamp(52.0, 130.0);
   }
 

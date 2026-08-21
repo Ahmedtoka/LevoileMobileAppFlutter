@@ -81,10 +81,44 @@ class LvProductBadges extends StatelessWidget {
     return _defaultLabels;
   }
 
+  /// The dashboard's chip wording and colours, from Setting.ProductBadges.
+  Map _badgeConfig(BuildContext context) {
+    try {
+      final raw = Provider.of<AppModel>(context, listen: false)
+          .appConfig
+          ?.settings
+          .productBadges;
+      if (raw is Map) return raw;
+    } catch (_) {
+      // No config yet — the callers below fall back to the built-in look.
+    }
+    return const {};
+  }
+
+  /// `"#rrggbb"` / `"#aarrggbb"` → Color, or [fallback].
+  ///
+  /// Anything unparseable falls back rather than throwing: this runs inside
+  /// build() on every product card, and in release a build exception renders
+  /// the whole screen blank (see CLAUDE.md §7).
+  static Color _color(Object? raw, Color fallback) {
+    if (raw is! String) return fallback;
+
+    var hex = raw.trim().replaceFirst('#', '');
+    if (hex.length == 3) {
+      hex = hex.split('').map((c) => '$c$c').join();
+    }
+    if (hex.length == 6) hex = 'ff$hex';
+    if (hex.length != 8) return fallback;
+
+    final value = int.tryParse(hex, radix: 16);
+    return value == null ? fallback : Color(value);
+  }
+
   @override
   Widget build(BuildContext context) {
     final discount = _discountPercent;
     final labels = _tagLabels(context);
+    final config = _badgeConfig(context);
 
     String? tagLabel;
     for (final t in _tagNames) {
@@ -95,24 +129,43 @@ class LvProductBadges extends StatelessWidget {
       }
     }
 
+    // The wording around the number, e.g. "Save {n}%" / "Get {n}% Off". The
+    // NUMBER stays computed from the product's own prices — the dashboard can
+    // never make the card claim a discount the customer will not get. An empty
+    // template means the admin switched the chip off.
+    final template = config['discountLabel'] is String
+        ? (config['discountLabel'] as String).trim()
+        : 'Save {n}%';
+
+    // Kept as a nullable local rather than a bool, so the substitution below
+    // still gets flow promotion. With a bare `showDiscount` bool the compiler
+    // no longer knows `discount` is non-null, and a future edit to the
+    // condition would silently print the word "null" on every card.
+    final shownDiscount = template.isEmpty ? null : discount;
+
     // A discount is the more useful thing to show, so it wins the top-start
     // corner and the tag label steps aside.
-    if (discount == null && tagLabel == null) return const SizedBox.shrink();
+    if (shownDiscount == null && tagLabel == null) return const SizedBox.shrink();
 
     return PositionedDirectional(
       top: 10,
       start: 10,
-      child: discount != null
+      child: shownDiscount != null
           ? _Chip(
-              text: 'Save $discount%',
-              // Dark chip for money-off, so it reads differently from the
+              text: template.replaceAll('{n}', '$shownDiscount'),
+              // Dark by default, so money-off reads differently from the
               // brand-coloured merchandising labels.
-              background: const Color(0xFF3A2A28),
+              background: _color(config['discountBg'], const Color(0xFF3A2A28)),
+              foreground: _color(config['discountText'], Colors.white),
               compact: compact,
             )
           : _Chip(
               text: tagLabel!,
-              background: Theme.of(context).primaryColor,
+              background: _color(
+                config['tagBg'],
+                Theme.of(context).primaryColor,
+              ),
+              foreground: _color(config['tagText'], Colors.white),
               compact: compact,
             ),
     );
@@ -122,11 +175,13 @@ class LvProductBadges extends StatelessWidget {
 class _Chip extends StatelessWidget {
   final String text;
   final Color background;
+  final Color foreground;
   final bool compact;
 
   const _Chip({
     required this.text,
     required this.background,
+    required this.foreground,
     required this.compact,
   });
 
@@ -147,7 +202,7 @@ class _Chip extends StatelessWidget {
           fontSize: compact ? 8.5 : 9,
           fontWeight: FontWeight.w700,
           height: 1.2,
-          color: Colors.white,
+          color: foreground,
         ),
       ),
     );
