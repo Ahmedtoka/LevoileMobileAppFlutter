@@ -170,8 +170,17 @@ class WelcomeCouponFlow {
   /// disabled, or its code was already dismissed.
   static Future<void> _maybeShowOnline(GlobalKey<NavigatorState> navKey) async {
     final service = CouponService.instance;
+
+    // Ask shouldShowOnline FIRST. It logs which guard failed, and `||`
+    // short-circuits — with a `online == null ||` in front, a null coupon
+    // returned here in complete silence, which is exactly the case that is
+    // hardest to diagnose (the server grants no online coupon unless the
+    // welcome one has a phone bound to it). shouldShowOnline already covers
+    // the null case, so this is not a lost check.
+    if (!service.shouldShowOnline) return;
+
     final online = service.onlineCoupon.value;
-    if (online == null || !service.shouldShowOnline) return;
+    if (online == null) return;
 
     // Le Voile: `await showDialog` returns the moment the previous route is
     // popped, but its reverse transition is still running. Pushing the second

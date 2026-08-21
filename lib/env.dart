@@ -223,7 +223,12 @@ Map<String, dynamic> environment = {
     "ShowBottomCornerCart": false,
 
     /// Show stock Status on product List & Product Detail
-    "showStockStatus": true,
+    // Le Voile: off. This printed "In Stock" under the price on every single
+    // card — true for almost everything in the catalogue, so it carried no
+    // information and just pushed the price and the cart icon apart.
+    // Sold-out variants are still handled: the product page hides them and
+    // defaults to the first one in stock (shopify_variant_mixin.dart).
+    "showStockStatus": false,
 
     /// Show stock quantity on Product List & Product Detail
     /// If you don't set "showStockQuantity" in "productDetail" config, use this
@@ -1612,7 +1617,28 @@ Map<String, dynamic> environment = {
     'web': 'AIzaSyDSNYVC-8DU9BTcyqkeN9c5pgVhwOBAvGg',
   },
 
-  "productCard": {"defaultImage": 'assets/images/no_product_image.png'},
+  // Le Voile: the product card, EVERYWHERE.
+  //
+  // ProductConfig seeds every field from here (product_config.dart:257-293),
+  // so this is the one place that reaches the category results, search
+  // results, wishlist, related products and everything else that is not a
+  // dashboard-driven home block. The home blocks send the same values
+  // explicitly from ConfigBuilder::productBlock() — keep the two in step or
+  // the same product looks different on two screens.
+  "productCard": {
+    "defaultImage": 'assets/images/no_product_image.png',
+    // The soft corner from the design. Was 3, which read as square.
+    "borderRadius": 16,
+    // The heart, on every card in the app.
+    "showHeart": true,
+    // Add-to-cart, next to the price.
+    "showCartIcon": true,
+    // The vendor name is meaningless in a single-brand store.
+    "hideStore": true,
+    // Stars need a reviews app; Shopify's Storefront API returns no ratings,
+    // so this only ever rendered an empty row.
+    "enableRating": false,
+  },
 
   /// ➡️ lib/common/products.dart
   "productDetail": {

@@ -16,7 +16,8 @@ import 'index.dart'
         CartQuantity,
         HeartButton,
         ProductImage,
-        ProductOnSale,
+        // Le Voile: ProductOnSale dropped from this show list — see the note in
+        // build(). LvProductBadges draws the discount instead.
         ProductPricing,
         ProductRating,
         ProductTitle,
@@ -317,11 +318,19 @@ class _ProductCardState extends State<ProductCard> with ActionButtonMixin {
                 ),
               ),
             ),
-            ProductOnSale(
-              product: widget.item,
-              config: productConfig,
-              margin: const EdgeInsets.all(0),
-            ),
+            // Le Voile: the stock ProductOnSale chip is NOT rendered.
+            //
+            // LvProductBadges (added above, over the photo) already shows the
+            // discount, so both were stacking in the same top-left corner —
+            // and they disagreed, because the stock one truncates the
+            // percentage with ~/ while ours rounds: the same product showed
+            // "-16%" and "Save 17%" at once. Ours is kept because it also
+            // carries the dashboard's New / Bestseller tag labels; the stock
+            // chip only ever does the discount.
+            //
+            // ProductOnSale takes no "hide" flag, so removing it here is the
+            // only way. Re-adding it means deleting LvProductBadges' Save
+            // label, not running the two together.
             if (productConfig.showHeart && !widget.item.isEmptyProduct())
               Positioned(
                 right: context.isRtl ? null : productConfig.hMargin,

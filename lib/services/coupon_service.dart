@@ -452,9 +452,11 @@ class CouponService {
   bool get shouldShowOnline {
     final c = onlineCoupon.value;
     if (c == null) {
-      debugPrint('🎟️[Coupon] online: no coupon granted by the dashboard '
-          '(check the online pool has available rows and that '
-          'coupon_online_popup_enabled is on)');
+      debugPrint('🎟️[Coupon] online: no coupon granted by the dashboard. '
+          'The online coupon is DEVICE-bound — no phone needed — so only two '
+          'things can be wrong: (1) coupon_online_popup_enabled is off (it is '
+          'OFF by default), or (2) the online pool has no rows with '
+          "type='online' status='available'.");
       return false;
     }
     if (!onlinePopup.enabled) {
