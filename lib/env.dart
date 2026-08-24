@@ -812,7 +812,18 @@ Map<String, dynamic> environment = {
         "testAlternateLinkDomain": "",
       },
       "selfhosted": {
-        "supportedDomains": ["inspireui.com", "demo.mstore.io", "mstore.io"],
+        // Le Voile: was InspireUI's own demo domains, which the log announced
+        // on every launch:
+        //   [SelfHostedDynamicLinkService] Supported domains:
+        //   [inspireui.com, demo.mstore.io, mstore.io]
+        //
+        // 🔴 This is the list the app matches an incoming link against, so a
+        // shared levoilestores.com product link was never recognised — it fell
+        // through to the browser even with the App Links / Universal Links
+        // files correctly hosted. The two halves must agree: this list, and
+        // the intent-filter in AndroidManifest.xml plus the `applinks:` entry
+        // in Runner.entitlements (both `${websiteDomain}` from env.props).
+        "supportedDomains": ["levoilestores.com", "www.levoilestores.com"],
         "handleHttpsLinks": true,
         "handleCustomScheme": true,
         "customScheme": 'fluxstore',
@@ -2083,7 +2094,26 @@ Map<String, dynamic> environment = {
   /// Ref: https://support.inspireui.com/help-center/articles/35/102/10/product-detail-screen#8-rating-and-reviews
   "reviewConfig": {
     // native (Woo) | judge (Shopify)
-    "service": "judge",
+    //
+    // 🔴 Le Voile: was "judge", pointed at InspireUI's OWN demo shop
+    // (`fluxchat.myshopify.com`, below) with their API key. Every product page
+    // fired a request at a shop that has never heard of our products — that is
+    // the `DioException [bad response] 404` and the two bare `🐛 Not Found`
+    // lines in the launch log. One wasted round trip per product opened, for a
+    // widget that is switched off anyway (`productDetail.enableRating` is
+    // false, because the Shopify Storefront API returns no ratings).
+    //
+    // ⚠️ It is `null`, NOT `""`. The generated parser is
+    // `$enumDecodeNullable(...) ?? ReviewServiceType.native`, which returns
+    // null only for a null source and **throws ArgumentError on any other
+    // unrecognised string**. `ReviewManager._getGlobalConfig()` calls
+    // `ReviewConfig.fromJson` with no try/catch, so `""` would throw while
+    // building the product page — and in release a build exception renders as
+    // a BLANK, FROZEN screen (CLAUDE.md §12), not an error.
+    //
+    // Set this back to "judge" ONLY together with a real Judge.me account:
+    // the domain and apiKey below must be Le Voile's, never the template's.
+    "service": null,
 
     // WooCommerce only
     // Allow users to submit reviews/ratings in Order History screen
