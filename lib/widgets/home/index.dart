@@ -336,7 +336,14 @@ class _HomeLayoutState extends State<HomeLayout> with AppBarMixin {
     if (_lvTickerConfig != null)
       SliverPersistentHeader(
         pinned: true,
-        delegate: LvTickerHeaderDelegate(config: _lvTickerConfig!),
+        delegate: LvTickerHeaderDelegate(
+          config: _lvTickerConfig!,
+          // Under Android's edge-to-edge (forced from targetSdk 36) the window
+          // reaches under the status bar, and this pinned strip is the first
+          // thing drawn — see LvTickerBar.topInset. Zero on every platform
+          // and OS version that does not inset, so nothing changes there.
+          topInset: MediaQuery.of(context).padding.top,
+        ),
       ),
     if (widgetData.isNotEmpty)
       SliverList(

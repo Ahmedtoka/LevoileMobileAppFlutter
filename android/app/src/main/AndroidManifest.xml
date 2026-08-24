@@ -97,6 +97,18 @@
         opening the link (if the app was already open beforehand, then at this point in the app manager, two instances of the app will 
         be seen simultaneously), and in some cases, it causes the app to crash. Therefore, it is necessary to switch to using singleTask (android:launchMode="singleTask") 
         to ensure the workflow functions correctly. -->
+        <!-- Le Voile: enableOnBackInvokedCallback is repeated on this activity
+             ON PURPOSE, even though <application> already carries it.
+
+             Android 16 IGNORES the flag at the application level for apps
+             targeting SDK 36, but still honours it on an activity. Without the
+             line here, bumping targetSdk to 36 switches predictive back on,
+             Flutter's legacy onWillPop stops being called, and maintab.dart's
+             "leave the app?" dialog never appears — back on the Home tab would
+             simply close the app with no warning.
+
+             Remove it only together with migrating WillPopScopeWidget /
+             onWillPop (maintab.dart:493) to PopScope. -->
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -104,7 +116,8 @@
             android:hardwareAccelerated="true"
             android:launchMode="singleTask"
             android:theme="@style/LaunchTheme"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:enableOnBackInvokedCallback="false">
 
             <!-- If you use a third-party plugin to handle deep links, such as app_links, Flutter's default deeplink handler will break these plugins.
             To opt out of using Flutter's default deep link handler, add the following metadata tag to <activity>: 

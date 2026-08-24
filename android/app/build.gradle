@@ -101,7 +101,17 @@ android {
     defaultConfig {
         applicationId envProperties.getProperty('androidPackageName', '')
         minSdkVersion 26
-        targetSdkVersion 35
+        // Le Voile: Play requires API 36 for any UPDATE published after
+        // 31 Aug 2026 — an app left on 35 stays installable but can never be
+        // updated again. compileSdk was already 36, so this is only the
+        // behaviour opt-in, not a toolchain move.
+        //
+        // Edge-to-edge was already enforced at 35, so nothing changes there.
+        // What DOES change is predictive back: Android 16 ignores
+        // android:enableOnBackInvokedCallback on <application> for targetSdk
+        // 36, which would have silently killed the exit-confirmation dialog.
+        // The flag is repeated on MainActivity, where it is still honoured.
+        targetSdkVersion 36
 
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

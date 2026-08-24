@@ -6,7 +6,13 @@ description: Mobile commerce app by Flutter
 # A version number is three numbers separated by dots, like 1.2.43 - followed by an optional build number separated by a +.
 # In Android, build-name is used as versionName while build-number used as versionCode.Read more about Android versioning at https://developer.android.com/studio/publish/versioning
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion. Read more about iOS versioning at https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.6.3+10
+# Le Voile: the build number must stay AHEAD of everything already uploaded,
+# on BOTH stores — it is the one field neither store lets you reuse.
+#   App Store Connect / TestFlight holds 1.6.2 (12), uploaded 17 Aug 2026.
+#   So +10 would have been rejected on upload, not at review.
+# Bumped past it with room to spare; check Play Console's versionCode before
+# the AAB too, and never re-add a literal version to project.pbxproj.
+version: 1.6.3+13
 
 environment:
   sdk: ">=3.10.0 <4.0.0"

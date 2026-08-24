@@ -15,7 +15,29 @@ import 'package:flutter/material.dart';
 /// }
 class LvTickerBar extends StatefulWidget {
   final Map config;
-  const LvTickerBar({required this.config, super.key});
+
+  /// Height of the status bar to leave clear ABOVE the coloured strip.
+  ///
+  /// 🔴 Needed because of targetSdk 36. The app used to opt out of Android's
+  /// edge-to-edge enforcement (`windowOptOutEdgeToEdgeEnforcement` in
+  /// styles.xml), so `MediaQuery.padding.top` was 0 and this block could sit
+  /// flush against the top of the window. Android 16 IGNORES that opt-out, so
+  /// the window now extends under the status bar — and this strip is the FIRST
+  /// thing on the home page, which put the scrolling messages behind the clock
+  /// and the battery icon.
+  ///
+  /// The gap is left in the page background rather than filled with the brand
+  /// colour on purpose: the status-bar ICONS are dark on the light theme
+  /// (`kSystemOverlayStyleLight`), and dark glyphs on `#A51E8C` are close to
+  /// unreadable. Painting the magenta up there would need the icon brightness
+  /// flipped for this screen only, and flipped back on every other one.
+  final double topInset;
+
+  const LvTickerBar({
+    required this.config,
+    this.topInset = 0,
+    super.key,
+  });
 
   /// Message font size. Also drives the strip's fixed height.
   static const double fontSize = 10.5;
@@ -166,7 +188,7 @@ class _LvTickerBarState extends State<LvTickerBar>
       ],
     );
 
-    return Container(
+    final bar = Container(
       width: double.infinity,
       color: _color('bgColor', Theme.of(context).primaryColor),
       padding: const EdgeInsets.symmetric(vertical: LvTickerBar.barPadding),
@@ -239,6 +261,19 @@ class _LvTickerBarState extends State<LvTickerBar>
         ),
       ),
     );
+
+    if (widget.topInset <= 0) return bar;
+
+    // The strip is PINNED, so this band stays behind the status bar for the
+    // whole scroll — it has to be opaque, or the page's content shows through
+    // it as the customer scrolls.
+    return ColoredBox(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Padding(
+        padding: EdgeInsets.only(top: widget.topInset),
+        child: bar,
+      ),
+    );
   }
 }
 
@@ -251,14 +286,23 @@ class _LvTickerBarState extends State<LvTickerBar>
 class LvTickerHeaderDelegate extends SliverPersistentHeaderDelegate {
   final Map config;
 
-  const LvTickerHeaderDelegate({required this.config});
+  /// See [LvTickerBar.topInset].
+  ///
+  /// It is passed IN rather than read from MediaQuery inside this class
+  /// because [minExtent] and [maxExtent] are plain getters with no
+  /// BuildContext — and if the extent did not include the inset, the sliver
+  /// would reserve less height than the widget draws and the strip would be
+  /// clipped by exactly the height of the status bar.
+  final double topInset;
+
+  const LvTickerHeaderDelegate({required this.config, this.topInset = 0});
 
   // Fixed extent: min == max means the bar never shrinks or grows on scroll.
   @override
-  double get minExtent => LvTickerBar.barHeight;
+  double get minExtent => LvTickerBar.barHeight + topInset;
 
   @override
-  double get maxExtent => LvTickerBar.barHeight;
+  double get maxExtent => LvTickerBar.barHeight + topInset;
 
   @override
   Widget build(
@@ -269,7 +313,7 @@ class LvTickerHeaderDelegate extends SliverPersistentHeaderDelegate {
     // Returning the same widget TYPE every time is what keeps the marquee's
     // State — and so its AnimationController — alive across rebuilds. Do not
     // add a key here.
-    return LvTickerBar(config: config);
+    return LvTickerBar(config: config, topInset: topInset);
   }
 
   @override

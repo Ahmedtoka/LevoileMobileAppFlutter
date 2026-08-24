@@ -4,17 +4,7 @@
         "details": [
             {
                 "appIDs": [
-                    "S9RPAM8224.com.inspireui.fluxstore.magento",
-                    "S9RPAM8224.com.inspireui.gpt",
-                    "S9RPAM8224.com.inspireui.fluxstore",
-                    "S9RPAM8224.com.inspireui.mstore.flutter.listing",
-                    "S9RPAM8224.com.inspireui.fluxstoremv",
-                    "S9RPAM8224.com.inspireui.mstore.flutter.max",
-                    "S9RPAM8224.com.inspireui.delivery",
-                    "S9RPAM8224.com.inspireui.fluxfoods",
-                    "S9RPAM8224.com.inspireui.fluxstore.manager",
-                    "S9RPAM8224.com.inspireui.fluxstore.opencart",
-                    "S9RPAM8224.com.inspireui.mstore.flutter"
+                    "Q8596AFPV8.com.arenahere.levoile"
                 ],
                 "paths": [
                     "/product/*",
@@ -24,10 +14,7 @@
                     "/collections/*",
                     "/brand/*",
                     "/product-tag/*",
-                    "/store/*",
-                    "/listing/*",
-                    "/blog/*",
-                    "/post/*"
+                    "/store/*"
                 ]
             }
         ]

@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flux_localization/flux_localization.dart';
 import 'package:provider/provider.dart';
@@ -10,9 +8,9 @@ import '../../../frameworks/frameworks.dart';
 import '../../../models/entities/index.dart';
 import '../../../models/product_model.dart';
 import '../../../models/product_variant_model.dart';
-import '../../../modules/dynamic_layout/helper/helper.dart';
 import '../../../services/service_config.dart';
 import '../../../services/services.dart';
+import '../../../widgets/product/lv_purchase_limit.dart';
 
 class BuyButtonWidget extends StatelessWidget {
   const BuyButtonWidget({
@@ -100,33 +98,19 @@ class BuyButtonWidget extends StatelessWidget {
   }
 
   /// check limit select quality by maximum available stock
-  int _getMaxQuantity(Product product, ProductVariation? productVariation) {
-    var maxAllowQuantity =
-        product.maxQuantity ??
-        Helper.formatInt(kCartDetail['maxAllowQuantity']) ??
-        100;
-    var limitSelectQuantity = maxAllowQuantity;
-
-    /// Skip check stock quantity for backorder products.
-    if (product.backordersAllowed) {
-      return limitSelectQuantity;
-    }
-
-    if (productVariation != null) {
-      if (productVariation.stockQuantity != null) {
-        limitSelectQuantity = math.min<int>(
-          productVariation.stockQuantity!,
-          maxAllowQuantity,
-        );
-      }
-    } else if (product.stockQuantity != null) {
-      limitSelectQuantity = math.min<int>(
-        product.stockQuantity!,
-        maxAllowQuantity,
+  ///
+  /// Le Voile: this logic moved to [LvPurchaseLimit] so the product page, the
+  /// cart row and add-to-cart cannot answer the same question differently —
+  /// they used to, and the disagreement is what let a customer fill a basket
+  /// they could not check out. One behaviour change on the way past: the stock
+  /// check used to be skipped whenever the PRODUCT allowed backorders, which
+  /// on Shopify is set per VARIANT, so one "continue selling" size lifted the
+  /// limit off every other size too.
+  int _getMaxQuantity(Product product, ProductVariation? productVariation) =>
+      LvPurchaseLimit.forSelector(
+        variation: productVariation,
+        product: product,
       );
-    }
-    return limitSelectQuantity;
-  }
 
   /// Add to Cart & Buy Now function
   void _addToCart(

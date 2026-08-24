@@ -10,9 +10,12 @@ import '../../../common/constants.dart';
 import '../../../models/app_model.dart';
 import '../../../models/entities/product.dart';
 import '../../../models/product_variant_model.dart';
+// Le Voile: still needed for `Layout.isDisplayDesktop` at :183, even though
+// this file no longer calls `Helper` — both classes live in helper.dart.
 import '../../../modules/dynamic_layout/helper/helper.dart';
 import '../../../modules/dynamic_layout/tabbar/tabbar_icon.dart';
 import '../../../services/index.dart'; //
+import '../../../widgets/product/lv_purchase_limit.dart';
 import '../../../widgets/product/quantity_selection/quantity_selection.dart';
 import '../mixins/corner_cart_mixin.dart';
 import '../mixins/detail_product_mixin.dart';
@@ -372,12 +375,24 @@ class _FlatStyleDetailProductWidgetState
                                             color: Theme.of(
                                               context,
                                             ).colorScheme.secondary,
+                                            // Le Voile: the selector the
+                                            // customer actually touches — the
+                                            // flat style is our layout and
+                                            // BuyButtonWidget below is built
+                                            // with showQuantity: false, so
+                                            // its own stock-aware limit never
+                                            // renders. This used to read the
+                                            // global ceiling and ignore stock
+                                            // entirely, which is how someone
+                                            // could pick more than the shop
+                                            // had and only learn of it in the
+                                            // cart.
                                             limitSelectQuantity:
-                                                product.maxQuantity ??
-                                                Helper.formatInt(
-                                                  kCartDetail['maxAllowQuantity'],
-                                                ) ??
-                                                100,
+                                                LvPurchaseLimit.forSelector(
+                                                  variation:
+                                                      model.productVariation,
+                                                  product: product,
+                                                ),
                                             value: quantity,
                                             quantityStep: product.quantityStep,
                                             onChanged: (int value) {

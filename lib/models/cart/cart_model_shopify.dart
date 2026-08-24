@@ -4,10 +4,9 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flux_localization/flux_localization.dart';
 
-import '../../common/config.dart';
 import '../../common/tools.dart';
-import '../../modules/dynamic_layout/helper/helper.dart';
 import '../../services/services.dart';
+import '../../widgets/product/lv_purchase_limit.dart';
 import '../index.dart';
 import '../mixins/language_mixin.dart';
 import 'cart_item_meta_data.dart';
@@ -70,13 +69,19 @@ class CartModelShopify
     isSaveLocal = true,
     isSaveRemote = true,
     CartItemMetaData? cartItemMetaData,
+    // Le Voile: an EXTRA optional argument on top of the interface, which
+    // Dart allows an override to add. Only this class's own currency re-add
+    // passes it; every caller typed as CartModel is unaffected.
+    bool enforceLimit = true,
   }) {
     var message = '';
     var defaultVariation = cartItemMetaData?.variation;
     var key = product.id.toString();
-
-    item[key] = product;
-
+    // Le Voile: `item[key] = product` used to sit here. It moved below the
+    // limit check, because that check can now refuse a FIRST add — the stock
+    // template could only ever refuse a repeat — and registering the product
+    // before refusing leaves an entry in `item` with no matching row in
+    // productsInCart, for the rest of the session.
     if (defaultVariation?.id == null) {
       defaultVariation = product.variations?.firstWhere(
         (element) => (element.inStock ?? false),
@@ -87,30 +92,68 @@ class CartModelShopify
 
     var quantityOfProductInCart = productsInCart[key] ?? 0;
 
-    if (!productsInCart.containsKey(key)) {
-      productsInCart[key] = quantity;
-      quantityOfProductInCart = quantity;
-    } else {
-      final stockQuantity = defaultVariation.stockQuantity ?? 0;
+    // Le Voile: ONE limit, computed the same way the cart row computes it
+    // (cart_item.dart:100-107), and applied to BOTH the first add and every
+    // later one.
+    //
+    // 🔴 What the stock template did, and why it left customers stranded:
+    //
+    //   * the first add — `!containsKey` — was written straight into the cart
+    //     with NO check at all;
+    //   * `defaultVariation.stockQuantity ?? 0` turned "Shopify told us
+    //     nothing" into "the limit is 0", and `== 0` is never true once one
+    //     unit is in the cart, so the stock check silently did nothing;
+    //   * `==` instead of `>=` meant adding 2 at a time steps 1 → 3 straight
+    //     over a stock of 2 without ever matching it.
+    //
+    // So add-to-cart only ever enforced maxAllowQuantity while the CART ROW
+    // enforced the variant's real availability — the customer could build a
+    // basket of 10 against 2 in stock, and only discovered it when Checkout
+    // was greyed out with a red line under the item. The limit now bites at
+    // the moment they press Add, which is the only place they can act on it.
+    //
+    // ⚠ The number is PER VARIANT, not per product: quantityAvailable is the
+    // stock of this exact colour + size at the locations published to the
+    // Online Store, minus units committed to unfulfilled orders. A product
+    // with plenty in total can still be down to 2 in White / L-XL.
+    final wanted = quantityOfProductInCart + quantity;
 
-      final maxAllowQuantity = Helper.formatInt(
-        kCartDetail['maxAllowQuantity'],
+    // 🔴 Two paths REBUILD a basket the customer already owns instead of
+    // reacting to a tap: restoring from local storage at launch
+    // (LocalMixin.getCartInLocal, which is the only caller passing
+    // isSaveLocal: false) and the currency re-add further down. Both throw
+    // the returned message away, so refusing there does not warn anyone —
+    // the line would just be missing from the cart next time they looked.
+    //
+    // Nothing unsellable escapes: the cart row re-checks stock on every
+    // build, and Shopify checks again at checkout. This only decides whether
+    // the customer is told, or quietly relieved of their basket.
+    final isRebuildingCart = !enforceLimit || isSaveLocal == false;
+
+    if (!isRebuildingCart) {
+      final limit = LvPurchaseLimit.resolve(
+        variation: defaultVariation,
+        product: product,
       );
-      if (maxAllowQuantity != null &&
-          (quantityOfProductInCart + quantity) > maxAllowQuantity) {
-        message =
-            '${S.of(context).youCanOnlyPurchase} $maxAllowQuantity ${S.of(context).forThisProduct}';
-        return (false, message);
-      }
-      if (quantityOfProductInCart == stockQuantity &&
-          (cartItemMetaData?.variation?.backordersAllowed ?? false) == false) {
-        message = S.of(context).addToCartMaximum;
-        return (false, message);
-      }
 
-      quantityOfProductInCart += quantity;
-      productsInCart[key] = quantityOfProductInCart;
+      if (limit != null && wanted > limit) {
+        message = limit <= 0
+            // "The maximum quantity has been exceeded" reads as nonsense for
+            // something there is none of.
+            ? S.of(context).outOfStock
+            : '${S.of(context).youCanOnlyPurchase} $limit ${S.of(context).forThisProduct}';
+
+        return (false, message);
+      }
     }
+
+    // Keyed by the PRODUCT id, not the product-variant key above: `item` is
+    // the lookup every cart row uses to find the product a line belongs to,
+    // and two sizes of the same shirt share one entry.
+    item[product.id.toString()] = product;
+
+    productsInCart[key] = wanted;
+    quantityOfProductInCart = wanted;
 
     cartItemMetaDataInCart[key] = CartItemMetaData(variation: defaultVariation);
     if (isSaveLocal) {
@@ -134,10 +177,19 @@ class CartModelShopify
   String updateQuantity(Product product, String key, int quantity, {context}) {
     if (productsInCart.containsKey(key)) {
       final productVariation = cartItemMetaDataInCart[key]?.variation;
-      final stockQuantity =
-          productVariation?.stockQuantity ?? product.stockQuantity;
-      if (stockQuantity != null && quantity > stockQuantity) {
-        return '${S.of(context).youCanOnlyPurchase} ${product.maxQuantity} ${S.of(context).forThisProduct}';
+      // Le Voile: the sixth place that answered "how many may they buy?", and
+      // the worst of them. It compared against the raw stock figure — no
+      // ceiling, no backorder check — and then printed `product.maxQuantity`,
+      // a WooCommerce field that is ALWAYS null on Shopify, so the message
+      // read "You can only purchase null of this product."
+      final limit = LvPurchaseLimit.resolve(
+        variation: productVariation,
+        product: product,
+      );
+      if (limit != null && quantity > limit) {
+        return limit <= 0
+            ? S.of(context).outOfStock
+            : '${S.of(context).youCanOnlyPurchase} $limit ${S.of(context).forThisProduct}';
       }
       productsInCart[key] = quantity;
       updateQuantityCartLocal(key: key, quantity: quantity);
@@ -261,6 +313,12 @@ class CartModelShopify
         product: newProductData,
         quantity: quantity,
         cartItemMetaData: CartItemMetaData(variation: variation),
+        // Le Voile: the customer only switched currency — they are not
+        // choosing anything. `newProductData` is freshly fetched, so if stock
+        // has fallen since they added the item, enforcing here would delete
+        // the line silently (the result is discarded) while local storage
+        // still held it. Let the cart row show the problem instead.
+        enforceLimit: false,
       );
     }
   }

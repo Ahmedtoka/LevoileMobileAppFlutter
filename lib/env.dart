@@ -1818,7 +1818,38 @@ Map<String, dynamic> environment = {
   },
   "cartDetail": {
     "minAllowTotalCartValue": 0,
-    "maxAllowQuantity": 10,
+
+    /// Le Voile: this is a SAFETY CEILING, not the real limit.
+    ///
+    /// The limit a customer actually hits is Shopify's own `quantityAvailable`
+    /// for the exact variant they picked — their colour AND their size — and
+    /// every screen takes the smaller of the two:
+    ///
+    ///   limit = min(variant quantityAvailable, maxAllowQuantity)
+    ///
+    /// It used to be 10, which is why EVERY product reported 10: any variant
+    /// with more than ten in stock was clipped to the app's own number, and a
+    /// shopper was told "the maximum quantity has been exceeded" while Shopify
+    /// had hundreds. Raised so the store's real stock is what speaks.
+    ///
+    /// 🔴 Keep it in step with `cartDetail.style`: the quantity dropdown in
+    /// `quantity_selection.dart:302` builds one ListTile PER UNIT in a plain
+    /// Column, so a large number here becomes that many widgets built at
+    /// once. Le Voile never reaches it (the text box is enabled, which
+    /// suppresses the dropdown), but a three-digit ceiling plus that list
+    /// would be a visible freeze.
+    ///
+    /// It cannot simply be removed. When Shopify tracks nothing for a variant
+    /// — inventory off, or "continue selling when out of stock" —
+    /// `quantityAvailable` comes back null and there is NO number to enforce.
+    /// For those variants this figure is the whole limit, and it is the only
+    /// thing between the cart and a 500-piece cash-on-delivery order from a
+    /// stranger. 50 is high enough that no real shopper meets it and low
+    /// enough to be worth phoning about.
+    ///
+    /// ⚠ So a customer sees 50 only where Shopify itself has no answer. Every
+    /// tracked variant is capped by its own real stock, well under this.
+    "maxAllowQuantity": 50,
 
     /// Cart Style: normal, style01
     "style": "style01",
