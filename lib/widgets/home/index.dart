@@ -336,14 +336,12 @@ class _HomeLayoutState extends State<HomeLayout> with AppBarMixin {
     if (_lvTickerConfig != null)
       SliverPersistentHeader(
         pinned: true,
-        delegate: LvTickerHeaderDelegate(
-          config: _lvTickerConfig!,
-          // Under Android's edge-to-edge (forced from targetSdk 36) the window
-          // reaches under the status bar, and this pinned strip is the first
-          // thing drawn — see LvTickerBar.topInset. Zero on every platform
-          // and OS version that does not inset, so nothing changes there.
-          topInset: MediaQuery.of(context).padding.top,
-        ),
+        // Le Voile: do NOT add a status-bar inset here. build() below already
+        // wraps the whole CustomScrollView in SafeArea(bottom: false), and
+        // this getter is evaluated from inside it — so MediaQuery here still
+        // reports the full inset and adding it again leaves a double-height
+        // blank band above the strip, on iPhones as well as Android.
+        delegate: LvTickerHeaderDelegate(config: _lvTickerConfig!),
       ),
     if (widgetData.isNotEmpty)
       SliverList(

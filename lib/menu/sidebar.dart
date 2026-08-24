@@ -96,7 +96,11 @@ class MenuBarState extends State<SideBarMenu> {
     return SafeArea(
       top: drawer.safeArea,
       right: false,
-      bottom: false,
+      // Le Voile: was `false`. A Scaffold strips the bottom inset from its
+      // `body`, but NOT from its `drawer` — so on a gesture-navigation phone
+      // the gesture bar sat over the last row, which is the always-appended
+      // "login" item (ConfigBuilder appends it if the admin has not).
+      bottom: true,
       left: false,
       child: Padding(
         key: drawer.key != null ? Key(drawer.key as String) : UniqueKey(),
