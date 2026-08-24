@@ -296,6 +296,15 @@ class MenuBarState extends State<SideBarMenu> {
           final segments = (value ?? '').split('-');
           final type = segments.first;
           bool has(String t) => segments.contains(t);
+
+          // Le Voile: a row the DASHBOARD gave sub-items to expands, whatever
+          // its own type is. This used to be checked only inside the `category`
+          // branch, which meant a "Shop" heading with children beneath it
+          // rendered as a dead flat row and the children vanished entirely.
+          if (item != null && item.children.isNotEmpty) {
+            return buildCategoryGroup(item);
+          }
+
           // Le Voile native pages.
           if (has('contact')) {
             return ListTile(
@@ -375,12 +384,8 @@ class MenuBarState extends State<SideBarMenu> {
             );
           }
           if (type == 'category') {
-            // Sub-categories come from the dashboard's Categories Tree. Items
-            // without any stay flat tiles, so the drawer only expands where the
-            // tree actually branches.
-            if (item?.children.isNotEmpty ?? false) {
-              return buildCategoryGroup(item!);
-            }
+            // Children are handled above, for every type at once — a category
+            // with none stays a flat tile.
             return GeneralCategoryWidget(
               item: item,
               useTile: true,
@@ -425,6 +430,45 @@ class MenuBarState extends State<SideBarMenu> {
     }
   }
 
+  /// What sits to the left of a drawer row's label.
+  ///
+  /// Three modes, set per row in the dashboard:
+  ///  * `icon`  — the chosen Material glyph (the default, and what every
+  ///              config written before this feature produces)
+  ///  * `image` — an uploaded picture, e.g. a category thumbnail
+  ///  * `none`  — nothing at all, so the label starts where the icons do and
+  ///              the row still lines up with its neighbours
+  ///
+  /// Returns null for `none`; ListTile then omits the leading slot entirely.
+  Widget? leadingFor(GeneralSettingItem item) {
+    if (item.iconMode == 'none') return null;
+
+    if (item.iconMode == 'image' && (item.menuImage?.isNotEmpty ?? false)) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: FluxImage(
+          imageUrl: item.menuImage!,
+          width: 24,
+          height: 24,
+          fit: BoxFit.cover,
+          // A broken URL must not take the drawer down with it: in release an
+          // exception inside build() paints the whole screen blank.
+          errorWidget: Icon(
+            iconPicker(item.icon, item.iconFontFamily) ?? Icons.label,
+            size: 20,
+            color: iconColor,
+          ),
+        ),
+      );
+    }
+
+    return Icon(
+      iconPicker(item.icon, item.iconFontFamily) ?? Icons.label,
+      size: 20,
+      color: iconColor,
+    );
+  }
+
   /// A curated drawer category that has sub-categories beneath it.
   ///
   /// Tapping the row expands or collapses it — it never navigates, so the whole
@@ -438,11 +482,7 @@ class MenuBarState extends State<SideBarMenu> {
       // separates its rows with spacing instead.
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
-        leading: Icon(
-          iconPicker(item.icon, item.iconFontFamily) ?? Icons.label,
-          size: 20,
-          color: iconColor,
-        ),
+        leading: leadingFor(item),
         title: Text(item.title, style: textStyle),
         iconColor: iconColor,
         collapsedIconColor: iconColor,

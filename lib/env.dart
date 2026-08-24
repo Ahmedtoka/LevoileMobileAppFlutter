@@ -10,7 +10,7 @@ Map<String, dynamic> environment = {
     /// 🌍 The register URL domain that matches with Envato Purchase Code
     /// 🔑 Also, make sure to update the envatoPurchaseCode from configs/env.properties
     'url': 'https://levoilestores.myshopify.com',
-    'accessToken': '122c8a74d57036b2f8de8402f3b65d56',
+    'accessToken': 'b8f050306f83756ac94e99f1034841f5',
 
     /// Wordpress blog, it could be removed if using the same above url
     'blog': 'https://levoilestores.myshopify.com',

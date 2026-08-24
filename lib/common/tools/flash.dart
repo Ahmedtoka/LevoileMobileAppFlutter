@@ -1,12 +1,20 @@
 import 'dart:async';
 
-import 'package:flash/flash.dart';
 import 'package:flutter/material.dart';
-import 'package:flux_localization/flux_localization.dart';
-import 'package:flux_ui/flux_ui.dart';
 
-import '../../services/index.dart';
+import '../../widgets/common/lv_toast.dart';
 
+/// Le Voile: EVERY message the app shows the customer now renders as the small
+/// bottom toast in [LvToast].
+///
+/// The stock helper put a full-width alarm-red bar across the top of the screen
+/// with an 18px message and a Close button, for everything from "added to cart"
+/// to "the maximum quantity has been exceeded". A shopper who picks a fourth
+/// shirt when three are in stock is not looking at a fault, and dressing it as
+/// one makes them think they broke something.
+///
+/// The four public entry points are kept exactly as they were so no caller
+/// changed; they differ only in what they pass to the toast.
 class FlashHelper {
   static Completer<BuildContext> _buildCompleter = Completer<BuildContext>();
 
@@ -23,46 +31,21 @@ class FlashHelper {
     _buildCompleter = Completer<BuildContext>();
   }
 
-  static TextStyle _titleStyle(BuildContext context, [Color? color]) {
-    final theme = Theme.of(context);
-    return (theme.dialogTheme.titleTextStyle ?? theme.textTheme.titleMedium)!
-        .copyWith(color: color);
-  }
-
-  static TextStyle _contentStyle(BuildContext context, [Color? color]) {
-    final theme = Theme.of(context);
-    return (theme.dialogTheme.contentTextStyle ?? theme.textTheme.bodyLarge)!
-        .copyWith(color: color);
-  }
-
   static Future<T?> informationBar<T>(
     BuildContext context, {
     String? title,
     required String message,
     Duration duration = const Duration(seconds: 3),
   }) async {
-    return _tryShowFlash<T>(
+    await LvToast.show(
       context,
-      func: () => showFlash<T>(
-        context: context,
-        duration: duration,
-        builder: (_, controller) {
-          return FlashBar(
-            controller: controller,
-            behavior: FlashBehavior.floating,
-            position: FlashPosition.bottom,
-            dismissDirections: const [FlashDismissDirection.startToEnd],
-            backgroundColor: Colors.black87,
-            title: title == null
-                ? null
-                : Text(title, style: _titleStyle(context, Colors.white)),
-            content: Text(message, style: _contentStyle(context, Colors.white)),
-            icon: Icon(Icons.info_outline, color: Colors.blue[300]),
-            indicatorColor: Colors.blue[300],
-          );
-        },
-      ),
+      message: message,
+      title: title,
+      icon: Icons.info_outline_rounded,
+      duration: duration,
     );
+
+    return null;
   }
 
   static Future<T?>? errorBar<T>(
@@ -71,34 +54,25 @@ class FlashHelper {
     required String message,
     Duration duration = const Duration(seconds: 3),
   }) async {
-    return _tryShowFlash<T>(
+    await LvToast.show(
       context,
-      func: () => showFlash<T>(
-        context: context,
-        duration: duration,
-        builder: (_, controller) {
-          return FlashBar(
-            controller: controller,
-            behavior: FlashBehavior.floating,
-            position: FlashPosition.bottom,
-            dismissDirections: const [FlashDismissDirection.startToEnd],
-            backgroundColor: Colors.black87,
-            title: title == null
-                ? null
-                : Text(title, style: _titleStyle(context, Colors.white)),
-            content: Text(message, style: _contentStyle(context, Colors.white)),
-            icon: Icon(Icons.warning, color: Colors.red[300]),
-            indicatorColor: Colors.red[300],
-          );
-        },
-      ),
+      message: message,
+      title: title,
+      isError: true,
+      duration: duration,
     );
+
+    return null;
   }
 
+  /// The one every screen calls. `isError` picks the amber accent; everything
+  /// else is the brand colour.
   static Future<T?>? message<T>(
     BuildContext context, {
     IconData? icon,
     String? title,
+    // Kept so no caller had to change. The toast owns its own type scale — a
+    // caller-supplied style is what produced the 18px shouty error text.
     TextStyle? messageStyle,
     required String message,
     Duration duration = const Duration(seconds: 3),
@@ -106,74 +80,26 @@ class FlashHelper {
     GestureTapCallback? onTap,
     bool? isHtml,
   }) async {
-    return _tryShowFlash<T>(
+    await LvToast.show(
       context,
-      func: () => showFlash<T>(
-        context: context,
-        duration: duration,
-        persistent: !ServerConfig().isBuilder,
-        onBarrierTap: onTap != null
-            ? () {
-                onTap.call();
-                return false; //dismiss
-              }
-            : null,
-        barrierDismissible: onTap != null,
-        builder: (context, controller) {
-          return FlashBar(
-            backgroundColor: isError
-                ? Theme.of(context).colorScheme.error
-                : Theme.of(context).primaryColor,
-            controller: controller,
-            behavior: FlashBehavior.floating,
-            position: FlashPosition.top,
-            dismissDirections: const [FlashDismissDirection.startToEnd],
-            icon: Icon(
-              icon ?? (isError ? Icons.error_outline : Icons.check),
-              color: Colors.white,
-            ),
-            title: title != null
-                ? Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15.0,
-                    ),
-                  )
-                : null,
-            content: isHtml == true
-                ? HtmlWidget(
-                    message,
-                    textStyle:
-                        messageStyle ??
-                        TextStyle(
-                          color: Colors.white,
-                          fontSize: isError ? 18.0 : 15.0,
-                        ),
-                  )
-                : Text(
-                    message,
-                    style:
-                        messageStyle ??
-                        TextStyle(
-                          color: Colors.white,
-                          fontSize: isError ? 18.0 : 15.0,
-                        ),
-                  ),
-            primaryAction: TextButton(
-              onPressed: () => controller.dismiss(null),
-              child: Text(
-                S.of(context).close,
-                style: const TextStyle(color: Colors.white, fontSize: 15.0),
-              ),
-            ),
-          );
-        },
-      ),
+      // A toast is one short line, so markup has nowhere to render. Strip the
+      // tags rather than drop the message: `isHtml` is set by callers relaying
+      // a server string, and those are exactly the ones worth reading.
+      message: isHtml == true ? _stripTags(message) : message,
+      title: title,
+      icon: icon,
+      isError: isError,
+      duration: duration,
+      onTap: onTap,
     );
+
+    return null;
   }
 
+  /// The error flavour of [message].
+  ///
+  /// 🔴 45 call sites depend on this exact signature — the whole add-to-cart,
+  /// checkout and address surface. Deleting it takes the app with it.
   static Future<T?>? errorMessage<T>(
     BuildContext context, {
     IconData? icon,
@@ -191,21 +117,19 @@ class FlashHelper {
     );
   }
 
-  /// This function wraps the call to the showFlash function to catch the
-  /// "try catch". It also handles some special issues.
-  static Future<T?>? _tryShowFlash<T>(
-    BuildContext context, {
-    required Future<T?>? Function() func,
-  }) async {
-    var result;
-    try {
-      result = await func();
-    } catch (_) {
-      result = null;
-    }
+  /// `<b>Sold out</b>` → `Sold out`.
+  static String _stripTags(String html) {
+    final text = html
+        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'<[^>]*>'), ' ')
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>');
 
-    return result;
+    return text.replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 }
 
-typedef ActionCallback = void Function(FlashController controller);

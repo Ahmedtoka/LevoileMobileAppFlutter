@@ -42,6 +42,13 @@ class GeneralSettingItem {
   /// for every other item, which is what keeps a childless entry a flat tile.
   List<GeneralSettingItem> children = [];
 
+  /// Le Voile: how this drawer row is decorated — 'icon', 'image' or 'none'.
+  /// Defaults to 'icon' so a config that predates the setting is unchanged.
+  String iconMode = 'icon';
+
+  /// Le Voile: absolute URL of the picture used when [iconMode] is 'image'.
+  String? menuImage;
+
   GeneralSettingItem({
     this.id = defaultId,
     this.title = '',
@@ -115,6 +122,19 @@ class GeneralSettingItem {
     if (json['roles'] != null) {
       roles = List<String>.from(json['roles']);
     }
+    // Le Voile: drawer row decoration.
+    final mode = json['iconMode']?.toString();
+    if (mode == 'icon' || mode == 'image' || mode == 'none') {
+      iconMode = mode!;
+    }
+    final img = json['image']?.toString().trim();
+    menuImage = (img == null || img.isEmpty) ? null : img;
+    // An 'image' row with no picture would leave a blank gap where the glyph
+    // should be, so fall back rather than trust the flag.
+    if (iconMode == 'image' && menuImage == null) {
+      iconMode = 'icon';
+    }
+
     if (json['children'] is List) {
       children = [
         for (final child in (json['children'] as List))
