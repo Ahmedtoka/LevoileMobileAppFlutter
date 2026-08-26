@@ -62,6 +62,17 @@ class GeneralWebWidget extends GeneralWidget {
           icon = iconPicker(item!.icon, item!.iconFontFamily) ?? Icons.error;
           onTap = () {
             if (item?.webViewMode ?? false) {
+              // ⚠️ Le Voile: a Shopify page opened here uses SHOPIFY'S WEB
+              // BASKET, which is a different cart from the app's Storefront
+              // one — so the tab-bar badge, My Coupons, the Thank-You snapshot
+              // and Analytics all miss anything bought through it.
+              //
+              // A bridge that pulled those actions back into the app was
+              // written and then pulled out before release: two review passes
+              // found 18 defects in it, six of which emptied the customer's
+              // basket without telling them. It needs its own change and a
+              // real-device test, not a slot in a deadline release.
+              // See CLAUDE.md, "The lookbook webview has its own cart".
               onPushScreen(
                 WebView(
                   '$webUrl',
