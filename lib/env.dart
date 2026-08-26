@@ -828,7 +828,15 @@ Map<String, dynamic> environment = {
         "handleCustomScheme": true,
         "customScheme": 'fluxstore',
         "customPaths": {
-          "product": [],
+          // 🔴 Le Voile: MUST list Shopify's product path explicitly.
+          //
+          // LinkService checks `productPaths` before `productListPaths`, but
+          // its built-in product path is WooCommerce's `/product/` (singular)
+          // while Shopify uses `/products/` (plural) — which is in the built-in
+          // productList list. So a real Le Voile product link fell through to
+          // "product list" and opened an EMPTY backdrop screen instead of the
+          // product. Naming it here puts it in `productPaths`, which wins.
+          "product": ["/products/"],
           "productList": [],
           "category": [],
           "brand": [],

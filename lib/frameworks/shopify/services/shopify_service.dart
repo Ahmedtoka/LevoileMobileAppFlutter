@@ -1145,11 +1145,24 @@ class ShopifyService extends BaseServices {
 
       return userInfo;
     } catch (e) {
+      // Le Voile: the real reason is DISCARDED here, and that is why a
+      // sign-in failure is undiagnosable from a customer's report.
+      //
+      // Shopify distinguishes "wrong password" from "this account has no
+      // password yet", from a token/scope problem, from the store having been
+      // switched to Shopify's NEW customer accounts — which disables classic
+      // Storefront password login entirely, so EVERY customer would see this
+      // same sentence. The log line below is the only thing that tells them
+      // apart; do not remove it, and do not let it reach the UI.
       printLog('::::login shopify error');
       printLog(e.toString());
-      throw Exception(
-        'Please check your username or password and try again. If the problem persists, please contact support!',
-      );
+
+      // 🔴 Thrown as a bare string, NOT Exception(...). The auth screens print
+      // whatever they catch, and `Exception('x').toString()` is "Exception: x"
+      // — which is how "Warning: Exception: Please check your username…"
+      // reached a customer's screen.
+      throw 'Please check your email or password and try again. '
+          'If you signed up with Apple, use the Sign in with Apple button.';
     }
   }
 
