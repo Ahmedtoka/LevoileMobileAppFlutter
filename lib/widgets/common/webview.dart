@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flux_localization/flux_localization.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +9,7 @@ import '../../common/constants.dart';
 import '../../common/events.dart';
 import '../../common/tools.dart';
 import '../../models/user_model.dart';
+import '../../routes/flux_navigate.dart';
 import '../../services/service_config.dart';
 import 'empty_state_widget.dart';
 import 'webview/webview.dart';
@@ -34,6 +37,19 @@ class WebView extends StatelessWidget with WebviewMixin {
   final bool allowHorizontalScroll;
   final WebViewDelegateController? webViewDelegateController;
 
+  /// Le Voile: send a tap on the WEB shop's basket to the app's own cart
+  /// instead of loading it.
+  ///
+  /// Content webviews — a banner, a menu page, a product link — put a real
+  /// browser session on the shop domain inside the app, and that session
+  /// carries its own Shopify cart cookie. A customer who tapped through to it
+  /// was shown a second basket with a different total from the one in the
+  /// app, and a Check Out button that skipped the app entirely.
+  ///
+  /// Off by default, and deliberately NOT passed by the checkout webview,
+  /// which must be free to load the very URLs this blocks.
+  final bool redirectStoreCartToApp;
+
   WebView(
     String url, {
     super.key,
@@ -55,6 +71,7 @@ class WebView extends StatelessWidget with WebviewMixin {
     this.allowVerticalScroll = true,
     this.allowHorizontalScroll = false,
     this.webViewDelegateController,
+    this.redirectStoreCartToApp = false,
   }) {
     data = url;
     isHTML = false;
@@ -81,6 +98,7 @@ class WebView extends StatelessWidget with WebviewMixin {
     this.allowVerticalScroll = true,
     this.allowHorizontalScroll = false,
     this.webViewDelegateController,
+    this.redirectStoreCartToApp = false,
   }) {
     data = html;
     isHTML = true;
@@ -102,7 +120,7 @@ class WebView extends StatelessWidget with WebviewMixin {
     }
     // UserModel may not be provided in Manager/Delivery apps, so keep it nullable.
     final userModel = context.read<UserModel?>();
-    if (userModel == null) return _buildWebViewWithCookie(null);
+    if (userModel == null) return _buildWebViewWithCookie(context, null);
 
     return Selector<UserModel, String?>(
       selector: (context, model) => model.user?.cookie,
@@ -122,32 +140,58 @@ class WebView extends StatelessWidget with WebviewMixin {
             ),
           );
         }
-        return _buildWebViewWithCookie(cookie);
+        return _buildWebViewWithCookie(context, cookie);
       },
     );
   }
 
-  Widget _buildWebViewWithCookie(String? cookie) {
+  /// Le Voile: the navigation gate this webview runs every URL through.
+  ///
+  /// Wraps whatever gate was already in force rather than replacing it, so
+  /// the internal/external domain rules keep applying underneath; the basket
+  /// check only ever adds a reason to stop.
+  Future<bool> Function(String) _navigationGuard(BuildContext context) {
+    final inherited = shouldPreventNavigator ?? shouldPreventWebNavigation;
+    if (!redirectStoreCartToApp) {
+      return inherited;
+    }
+
+    return (String url) async {
+      if (WebviewMixin.isStoreCartUrl(url)) {
+        printLog('[WebView] web shop basket blocked, opening app cart: $url');
+        if (context.mounted) {
+          // Not awaited: this has to answer the webview's navigation
+          // question now, and the answer does not depend on how long the
+          // customer then spends in the cart.
+          unawaited(FluxNavigate.pushNamed(RouteList.cart, context: context));
+        }
+        return true;
+      }
+      return inherited(url);
+    };
+  }
+
+  Widget _buildWebViewWithCookie(BuildContext context, String? cookie) {
     if (isHTML) {
-      return _buildWebView(html: html);
+      return _buildWebView(context, html: html);
     }
 
     if (ServerConfig().isWooType || ServerConfig().isWordPress) {
-      return _buildWebView(url: url?.addWooCookieToUrl(cookie));
+      return _buildWebView(context, url: url?.addWooCookieToUrl(cookie));
     }
 
-    return _buildWebView(url: url);
+    return _buildWebView(context, url: url);
   }
 
-  Widget _buildWebView({String? url, String? html}) {
+  Widget _buildWebView(BuildContext context, {String? url, String? html}) {
+    final navigationGuard = _navigationGuard(context);
     if (kIsWeb) {
       return WebviewWeb(
         url: url,
         data: html,
         title: title,
         routeName: routeName,
-        shouldPreventNavigator:
-            shouldPreventNavigator ?? shouldPreventWebNavigation,
+        shouldPreventNavigator: navigationGuard,
         enableForward: enableForward,
         enableBackward: enableBackward,
         enableClose: enableClose,
@@ -168,8 +212,7 @@ class WebView extends StatelessWidget with WebviewMixin {
         data: html,
         title: title,
         routeName: routeName,
-        shouldPreventNavigator:
-            shouldPreventNavigator ?? shouldPreventWebNavigation,
+        shouldPreventNavigator: navigationGuard,
         script: script.isEmptyOrNull ? kWebViewConfig.webViewScript : script,
         headers: headers,
         enableForward: enableForward,
@@ -190,8 +233,7 @@ class WebView extends StatelessWidget with WebviewMixin {
       return WebViewInApp(
         url: url,
         data: html,
-        shouldPreventNavigator:
-            shouldPreventNavigator ?? shouldPreventWebNavigation,
+        shouldPreventNavigator: navigationGuard,
         routeName: routeName,
         title: title,
         script: script.isEmptyOrNull ? kWebViewConfig.webViewScript : script,
@@ -217,8 +259,7 @@ class WebView extends StatelessWidget with WebviewMixin {
       url: url,
       data: html,
       title: title,
-      shouldPreventNavigator:
-          shouldPreventNavigator ?? shouldPreventWebNavigation,
+      shouldPreventNavigator: navigationGuard,
       routeName: routeName,
       script: script.isEmptyOrNull ? kWebViewConfig.webViewScript : script,
       headers: headers,

@@ -1794,8 +1794,34 @@ Map<String, dynamic> environment = {
     'showRelatedBlog': true,
     'showAuthorInfo': true,
   },
+  /// How each product option is DRAWN on the product page, keyed by the
+  /// option's name in Shopify, lowercased
+  /// (`shopify_variant_mixin.dart:207`). Anything not listed here falls back
+  /// to "box" — the plain outlined squares.
+  ///
+  /// 🔴 Le Voile: the key is the SHOPIFY option name, so a product whose
+  /// colours are set up under a differently-named option does not get colour
+  /// swatches — it gets squares. That is exactly what happened to Striped
+  /// Tank Top: its colours live under an option called "Style" with the
+  /// values 1 / 2 / 3, so the customer was offered three numbered boxes with
+  /// no way to tell what any of them looked like, while Striped Denim Dress —
+  /// set up under "Color" — showed proper photo swatches.
+  ///
+  /// "style" is mapped here so those products show photos too. ⚠ It is a
+  /// PATCH OVER THE DATA, not a fix of it: the option's VALUES are still the
+  /// strings Shopify holds, so the tank top still reads "Color  1" once
+  /// picked, and the cart row still says "Color: 1". Only renaming the option
+  /// and its values in Shopify Admin (Style → Color, 1/2/3 → real colour
+  /// names) makes every screen — product, cart, checkout, filters — read
+  /// properly.
+  ///
+  /// ⚠ And it applies to EVERY product: the day Le Voile adds a genuine style
+  /// option ("Style: Casual / Formal"), that product will show photo swatches
+  /// labelled "Color" too. If that happens, name the new option something
+  /// else in Shopify, or drop this line once the colour products are renamed.
   "productVariantLayout": {
     "color": "imageDropdown",
+    "style": "imageDropdown",
     "size": "box",
     "height": "option",
     "color-image": "image",
@@ -1871,21 +1897,31 @@ Map<String, dynamic> environment = {
 
   /// Translate the product variant by languages
   /// As it could be limited with the REST API when request variant
+  ///
+  /// Le Voile: also what a customer sees as the option's HEADING. Without an
+  /// entry here the raw Shopify option name is printed lowercased, which is
+  /// why Striped Tank Top's colour picker was headed "Style". "style" is
+  /// mapped to Colour for the same reason it is mapped in
+  /// [productVariantLayout] above — see the ⚠ notes there before adding a
+  /// product with a real style option.
   "productVariantLanguage": {
     "en": {
       "color": "Color",
+      "style": "Color",
       "size": "Size",
       "height": "Height",
       "color-image": "Color",
     },
     "ar": {
       "color": "اللون",
+      "style": "اللون",
       "size": "بحجم",
       "height": "ارتفاع",
       "color-image": "اللون",
     },
     "vi": {
       "color": "Màu",
+      "style": "Màu",
       "size": "Kích thước",
       "height": "Chiều Cao",
       "color-image": "Màu",

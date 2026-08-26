@@ -246,6 +246,7 @@ class _ReviewState extends BaseScreen<ReviewScreen> {
       // Not allow go to product detail when in review screen
       return IgnorePointer(
         child: ShoppingCartRow(
+          cartKey: key,
           cartItemMetaData: model.cartItemMetaDataInCart[key]?.copyWith(
             variation: model.getProductVariationById(key),
           ),

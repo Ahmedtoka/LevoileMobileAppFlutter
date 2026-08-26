@@ -36,6 +36,27 @@ class CartItemStateUI {
   final String? price;
   final String? priceWithQuantity;
 
+  /// Le Voile: the discount breakdown for THIS row, all three values ALREADY
+  /// FORMATTED in the display currency, and all null together when the row
+  /// carries no discount.
+  ///
+  /// Formatted rather than numeric on purpose: the currency and the
+  /// conversion rate live on AppModel, which the row already reads, and doing
+  /// the conversion once at the top keeps every layout from having to repeat
+  /// it — and from quietly disagreeing about the rate.
+  ///
+  /// [priceBeforeDiscount] and [priceAfterDiscount] are PER UNIT, to sit
+  /// beside [price], which is also per unit. [discountAmount] is the LINE
+  /// total, because that is the money the customer keeps in their pocket and
+  /// the figure that has to add up against the cart total.
+  final String? priceBeforeDiscount;
+  final String? priceAfterDiscount;
+  final String? discountAmount;
+
+  /// The name of that discount — the coupon code the customer typed, or the
+  /// campaign title of an automatic one. Null when unnamed.
+  final String? discountLabel;
+
   final bool isOnBackorder;
   final bool inStock;
   final dynamic limitQuantity;
@@ -55,6 +76,10 @@ class CartItemStateUI {
     this.imageFeature,
     this.price,
     this.priceWithQuantity,
+    this.priceBeforeDiscount,
+    this.priceAfterDiscount,
+    this.discountAmount,
+    this.discountLabel,
     required this.isOnBackorder,
     required this.inStock,
     this.limitQuantity,
@@ -79,6 +104,9 @@ extension CartStyleFromStringExt on String? {
 }
 
 extension CartItemStateExt on CartItemStateUI {
+  /// Le Voile: true only when there is a real discount to draw on this row.
+  bool get hasDiscount => discountAmount != null && priceAfterDiscount != null;
+
   bool get isPWGiftCardProduct =>
       cartItemMetaData?.pwGiftCardInfo != null && product.isPWGiftCardProduct;
   bool get showQuantity => !isPWGiftCardProduct && !product.isAppointment;

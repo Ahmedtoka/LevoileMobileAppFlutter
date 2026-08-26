@@ -96,6 +96,17 @@ class CartDataShopify {
 
   double get totalDiscount => productDiscount + orderDiscount;
 
+  /// Le Voile: the name to print next to an order-level discount.
+  ///
+  /// Falls back to the applied discount CODE, because an order discount that
+  /// came from a code the customer typed carries its name on the cart's
+  /// `discountCodes` rather than on the allocation in some API versions.
+  String? get orderDiscountLabel =>
+      discountAllocations
+          .firstWhereOrNull((allocation) => allocation.label != null)
+          ?.label ??
+      discountCodeApplied;
+
   CartDataShopify copyWith({
     CartStatus? status,
     List<CartLineItem>? lineItems,
@@ -138,9 +149,20 @@ class CartDiscountAllocation {
   final Money discountedAmount;
   final DiscountApplication discountApplication;
 
+  /// Le Voile: what to call this discount in front of the customer.
+  ///
+  /// The GraphQL fragment already asked for both spellings and neither was
+  /// being read: `code` on a CartCodeDiscountAllocation (the coupon the
+  /// customer typed, e.g. NEW682226) and `title` on an automatic or custom
+  /// one (the campaign name the shop gave it). Exactly one of the two is
+  /// present per allocation, so the customer always gets the name they would
+  /// recognise, and null only for a shape Shopify has not documented yet.
+  final String? label;
+
   CartDiscountAllocation({
     required this.discountedAmount,
     required this.discountApplication,
+    this.label,
   });
 
   factory CartDiscountAllocation.fromJson(Map json) {
@@ -149,6 +171,7 @@ class CartDiscountAllocation {
       discountApplication: DiscountApplication.fromJson(
         json['discountApplication'],
       ),
+      label: json['code'] ?? json['title'],
     );
   }
 }
@@ -299,6 +322,11 @@ class CartLineItem {
       (sum, allocation) => sum + allocation.discountedAmount.amount,
     );
   }
+
+  /// Le Voile: the name to print next to this line's discount.
+  String? get discountLabel => discountAllocations
+      .firstWhereOrNull((allocation) => allocation.label != null)
+      ?.label;
 }
 
 class Cost {

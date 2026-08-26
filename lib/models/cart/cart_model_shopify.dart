@@ -9,6 +9,7 @@ import '../../services/services.dart';
 import '../../widgets/product/lv_purchase_limit.dart';
 import '../index.dart';
 import '../mixins/language_mixin.dart';
+import 'cart_item_discount.dart';
 import 'cart_item_meta_data.dart';
 import 'mixin/index.dart';
 
@@ -35,17 +36,191 @@ class CartModelShopify
 
   @override
   double? getSubTotal() {
-    return productsInCart.keys.fold(0.0, (sum, key) {
-      var productVariation = cartItemMetaDataInCart[key]?.variation;
-      if (productVariation?.price?.isNotEmpty ?? false) {
-        return (sum ?? 0) +
-            double.parse(productVariation!.price!) * productsInCart[key]!;
-      } else {
-        var price = PriceTools.getPriceProductValue(item[key], onSale: true)!;
-        if (price.isNotEmpty) {
-          return (sum ?? 0) + double.parse(price) * productsInCart[key]!;
-        }
-        return sum;
+    return productsInCart.keys.fold(
+      0.0,
+      (sum, key) => (sum ?? 0) + _lineSubtotal(key),
+    );
+  }
+
+  /// Le Voile: what ONE cart row is worth before any discount — the same
+  /// price the row itself prints, times its quantity.
+  ///
+  /// This was the body of [getSubTotal]; it moved out because
+  /// [discountPerCartItem] needs the very same per-row number to work out
+  /// each row's share of an order-level discount. Sharing the arithmetic is
+  /// the point: the shares are then guaranteed to be shares OF the subtotal
+  /// the customer is looking at, not of a second, slightly different total.
+  double _lineSubtotal(String key) {
+    final quantity = productsInCart[key] ?? 0;
+    if (quantity <= 0) {
+      return 0;
+    }
+
+    final productVariation = cartItemMetaDataInCart[key]?.variation;
+    if (productVariation?.price?.isNotEmpty ?? false) {
+      return (double.tryParse(productVariation!.price!) ?? 0) * quantity;
+    }
+
+    final price = PriceTools.getPriceProductValue(item[key], onSale: true);
+    if (price?.isNotEmpty ?? false) {
+      return (double.tryParse(price!) ?? 0) * quantity;
+    }
+    return 0;
+  }
+
+  /// Le Voile: our cart rows paired up with the Shopify lines behind them,
+  /// keyed by our cart key.
+  ///
+  /// The two sides meet at the VARIANT — our key is `productId-variantId` and
+  /// Shopify's `merchandiseId` is the variant GID — never at the product,
+  /// which would collide the moment the same dress is in the cart in two
+  /// sizes.
+  ///
+  /// Built as one index rather than a scan per row because
+  /// [discountPerCartItem] is read from inside every cart row's build, and a
+  /// lookup-per-row over a scan-per-lookup is quadratic on every frame of a
+  /// long cart.
+  Map<String, CartLineItem> _shopifyLinesByCartKey() {
+    final lines = cartDataShopify?.lineItems ?? const <CartLineItem>[];
+    if (lines.isEmpty) {
+      return const {};
+    }
+
+    final byMerchandiseId = <String, CartLineItem>{
+      for (final line in lines) line.merchandiseId: line,
+    };
+
+    final result = <String, CartLineItem>{};
+    for (final key in productsInCart.keys) {
+      final variantId = cartItemMetaDataInCart[key]?.variation?.id;
+      final line = variantId == null ? null : byMerchandiseId[variantId];
+      if (line != null) {
+        result[key] = line;
+      }
+    }
+    return result;
+  }
+
+  /// Le Voile: split the discount across the rows it actually came off.
+  ///
+  /// Shopify reports a discount in one of two shapes and the customer sees
+  /// neither of them broken down, so we do it here:
+  ///
+  ///   1. A PRODUCT discount ("Percentage off products") arrives already
+  ///      attached to each cart line. Those numbers are Shopify's own and are
+  ///      used verbatim — never recomputed.
+  ///
+  ///   2. An ORDER discount ("Amount/Percentage off order" — what code
+  ///      NEW682226 is) arrives once, for the whole cart, as
+  ///      `cart.discountAllocations`. Shopify still charges it proportionally
+  ///      to each line's value, it just does not publish the split, so we
+  ///      reproduce that same proportional split here.
+  ///
+  /// ⚠ Case 2 is a RECONSTRUCTION, not a figure from Shopify. It is exact for
+  /// a percentage-off-order discount (every row loses the same percentage)
+  /// and it matches how Shopify allocates a fixed amount across lines, but if
+  /// Shopify ever changes that allocation the rows would drift from the final
+  /// invoice. The safeguard is the largest-remainder pass below: the parts
+  /// always add back up to the total the customer is charged, to the cent, so
+  /// a drift can never show up as money that appears or vanishes.
+  ///
+  /// Amounts are in the SHOP's currency, matching everything else Shopify
+  /// hands back; the widget converts for display.
+  @override
+  Map<String, CartItemDiscount> get discountPerCartItem {
+    final data = cartDataShopify;
+    if (data == null) {
+      return const {};
+    }
+
+    final lines = _shopifyLinesByCartKey();
+    final amounts = <String, double>{};
+
+    // 1. Shopify's own per-line figures.
+    for (final entry in lines.entries) {
+      final amount = entry.value.totalDiscountAmount;
+      if (amount > 0) {
+        amounts[entry.key] = amount;
+      }
+    }
+
+    final orderDiscount = data.orderDiscount;
+
+    // Shopify has, in some API versions, reported an order-level discount in
+    // BOTH places at once. Splitting it again on top of the per-line figures
+    // would show the customer double the discount they are getting, so bail
+    // out the moment the cart-level discount is recognisably already on the
+    // lines — by name when the allocations are named, and otherwise on the
+    // conservative assumption that Shopify's own numbers are the complete
+    // story.
+    final orderLabel = data.orderDiscountLabel;
+    final alreadySplitAcrossLines = orderLabel != null
+        ? data.lineItems.any(
+            (line) => line.discountAllocations.any(
+              (allocation) => allocation.label == orderLabel,
+            ),
+          )
+        : amounts.isNotEmpty;
+
+    if (orderDiscount > 0 && !alreadySplitAcrossLines) {
+      _spreadAcrossRows(orderDiscount, amounts);
+    }
+
+    return {
+      for (final entry in amounts.entries)
+        if (entry.value > 0)
+          entry.key: CartItemDiscount(
+            subtotal: _lineSubtotal(entry.key),
+            amount: entry.value,
+            label:
+                lines[entry.key]?.discountLabel ?? data.orderDiscountLabel,
+          ),
+    };
+  }
+
+  /// Le Voile: hand out an order-level discount over the rows in proportion
+  /// to what each row is worth, adding into [amounts] in place.
+  void _spreadAcrossRows(double discount, Map<String, double> amounts) {
+    final weights = <String, double>{};
+    var subtotal = 0.0;
+    for (final key in productsInCart.keys) {
+      final lineSubtotal = _lineSubtotal(key);
+      if (lineSubtotal > 0) {
+        weights[key] = lineSubtotal;
+        subtotal += lineSubtotal;
+      }
+    }
+    if (subtotal <= 0) {
+      return;
+    }
+
+    // Largest remainder: round every share DOWN to the cent first, then hand
+    // the leftover cents to the rows that lost the most in the rounding. This
+    // is what keeps the printed parts adding up to the printed total — plain
+    // rounding leaves the column short or over by a few cents, which on a
+    // discount breakdown reads as an error rather than as rounding.
+    final shares = <String, double>{};
+    final remainders = <MapEntry<String, double>>[];
+    var allocatedCents = 0;
+    for (final entry in weights.entries) {
+      final exactCents = discount * 100 * entry.value / subtotal;
+      final flooredCents = exactCents.floor();
+      shares[entry.key] = flooredCents / 100;
+      allocatedCents += flooredCents;
+      remainders.add(MapEntry(entry.key, exactCents - flooredCents));
+    }
+
+    var leftoverCents = (discount * 100).round() - allocatedCents;
+    remainders.sort((a, b) => b.value.compareTo(a.value));
+    for (var i = 0; i < remainders.length && leftoverCents > 0; i++) {
+      final key = remainders[i].key;
+      shares[key] = shares[key]! + 0.01;
+      leftoverCents--;
+    }
+
+    shares.forEach((key, amount) {
+      if (amount > 0) {
+        amounts[key] = (amounts[key] ?? 0) + amount;
       }
     });
   }

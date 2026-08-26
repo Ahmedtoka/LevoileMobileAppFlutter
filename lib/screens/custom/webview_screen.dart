@@ -82,6 +82,10 @@ class _StateWebViewScreen extends State<WebViewScreen> {
           webViewDelegateController: _webViewDelegateController,
           onPageFinished: AppBarWebControlDelegate.emitRoute,
           requiredLogin: widget.auth,
+          // Le Voile: a page tab pointed at the shop's website hands the
+          // customer the WEB basket, whose total has nothing to do with the
+          // app's. Send it to the app's cart instead.
+          redirectStoreCartToApp: true,
         ),
       ),
     );

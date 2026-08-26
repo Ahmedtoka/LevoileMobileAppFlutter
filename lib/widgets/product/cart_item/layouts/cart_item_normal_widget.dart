@@ -9,6 +9,7 @@ import '../../../../modules/dynamic_layout/helper/helper.dart';
 import '../../../../services/index.dart';
 import '../../quantity_selection/quantity_selection.dart';
 import '../cart_item_state_ui.dart';
+import '../widgets/cart_item_price_block.dart';
 
 class CartItemNormalWidget extends StatelessWidget {
   const CartItemNormalWidget(
@@ -75,7 +76,11 @@ class CartItemNormalWidget extends StatelessWidget {
                             ),
                             const SizedBox(height: 7),
                             if (stateUI.showPrice(context))
-                              Text(stateUI.price!, style: styleTitle),
+                              CartItemPriceBlock(
+                                stateUI,
+                                fontSize: styleTitle.fontSize ?? 14,
+                                color: styleTitle.color,
+                              ),
                             const SizedBox(height: 10),
                             if (stateUI.product.options != null &&
                                 stateUI.cartItemMetaData?.options != null)

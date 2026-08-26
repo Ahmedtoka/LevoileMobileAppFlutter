@@ -10,6 +10,7 @@ import '../../../../modules/dynamic_layout/helper/helper.dart';
 import '../../../../services/index.dart';
 import '../../quantity_selection/quantity_selection.dart';
 import '../cart_item_state_ui.dart';
+import '../widgets/cart_item_price_block.dart';
 
 const _kMinHeightCard = 110.0;
 
@@ -225,12 +226,9 @@ class CartItemStyle01Widget extends StatelessWidget {
                                     context,
                                     stateUI.product,
                                   ))
-                                    Text(
-                                      stateUI.price!,
-                                      style: TextStyle(
-                                        color: theme.colorScheme.secondary,
-                                        fontSize: 13,
-                                      ),
+                                    CartItemPriceBlock(
+                                      stateUI,
+                                      color: theme.colorScheme.secondary,
                                     ),
                                   if (infosWidget.isNotEmpty)
                                     const SizedBox(height: 10),

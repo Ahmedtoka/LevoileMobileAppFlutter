@@ -3,7 +3,7 @@ import 'package:flux_localization/flux_localization.dart';
 import 'package:provider/provider.dart';
 
 import '../../../common/config.dart';
-import '../../../common/extensions/extensions.dart';
+import '../../../common/tools.dart';
 import '../../../models/cart/cart_base.dart';
 import '../../../models/cart/cart_item_meta_data.dart';
 import '../../../models/index.dart' show AppModel, Product;
@@ -20,6 +20,7 @@ class ShoppingCartRow extends StatelessWidget with ActionButtonMixin {
   const ShoppingCartRow({
     required this.product,
     required this.quantity,
+    this.cartKey,
     this.onRemove,
     this.onChangeQuantity,
     this.cartItemMetaData,
@@ -36,6 +37,16 @@ class ShoppingCartRow extends StatelessWidget with ActionButtonMixin {
   final Product? product;
   final CartItemMetaData? cartItemMetaData;
   final int? quantity;
+
+  /// Le Voile: this row's key in [CartModel.productsInCart]
+  /// (`productId-variationId`).
+  ///
+  /// The row already knows its product and variation, but the discount split
+  /// is keyed by the cart key, and rebuilding that key here from the two
+  /// halves would be a second, drifting copy of a format the model owns.
+  /// Callers that have the key pass it; the ones that do not simply get no
+  /// discount line, which is the old behaviour.
+  final String? cartKey;
   final bool Function(int value)? onChangeQuantity;
   final VoidCallback? onRemove;
   final bool showStoreName;
@@ -120,6 +131,31 @@ class ShoppingCartRow extends StatelessWidget with ActionButtonMixin {
           currency,
           quantity: quantity ?? 1,
         );
+
+        // Le Voile: this row's share of the discount, so the customer can see
+        // WHICH piece the coupon came off, how much came off it, and what the
+        // piece costs now — the cart total alone only ever told them that some
+        // money came off somewhere.
+        //
+        // The before AND after prices both come from the model's own numbers
+        // rather than one from here and one from `price` above, so that what
+        // the customer reads always subtracts correctly: a struck-out price
+        // that does not minus the stated discount into the new price is worse
+        // than showing no breakdown at all.
+        final discount = cartKey == null
+            ? null
+            : cartModel.discountPerCartItem[cartKey];
+        String? formatMoney(double value) =>
+            PriceTools.getCurrencyFormatted(value, currencyRate,
+                currency: currency);
+        final units = (quantity ?? 1) > 0 ? (quantity ?? 1) : 1;
+        final discountAmount =
+            discount == null ? null : formatMoney(discount.amount);
+        final priceBeforeDiscount =
+            discount == null ? null : formatMoney(discount.subtotal / units);
+        final priceAfterDiscount =
+            discount == null ? null : formatMoney(discount.total / units);
+
         final stateUI = CartItemStateUI(
           enableBottomDivider: enableBottomDivider,
           inStock: inStock,
@@ -136,6 +172,10 @@ class ShoppingCartRow extends StatelessWidget with ActionButtonMixin {
           onRemove: onRemove != null ? () => _onRemoveItem(context) : null,
           price: price,
           priceWithQuantity: priceWithQuantity,
+          priceBeforeDiscount: priceBeforeDiscount,
+          priceAfterDiscount: priceAfterDiscount,
+          discountAmount: discountAmount,
+          discountLabel: discount?.label,
           quantity: quantity,
         );
 

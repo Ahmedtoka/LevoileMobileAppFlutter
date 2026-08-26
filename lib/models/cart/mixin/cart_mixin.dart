@@ -3,6 +3,7 @@ import '../../../common/tools.dart';
 import '../../../modules/dynamic_layout/helper/helper.dart';
 import '../../entities/woo_smart_cod.dart';
 import '../../index.dart';
+import '../cart_item_discount.dart';
 import '../cart_item_meta_data.dart';
 
 mixin CartMixin {
@@ -36,6 +37,21 @@ mixin CartMixin {
 
   // The IDs and cart item metadata in the cart.
   final Map<String, CartItemMetaData?> cartItemMetaDataInCart = {};
+
+  /// Le Voile: the discount broken down per cart row, keyed by cart key (the
+  /// same `productId-variationId` key as [productsInCart]).
+  ///
+  /// The customer is entitled to see which piece the discount came off, how
+  /// much came off it, and what that piece costs now — a single "Coupon code
+  /// applied successfully - 253.00LE" at the bottom of the cart answers none
+  /// of the three. Only rows that actually carry a discount appear, so an
+  /// empty map means "no discount to break down" and every caller can skip
+  /// the whole section.
+  ///
+  /// The default here is empty: only Shopify reports the allocation, and only
+  /// [CartModelShopify] overrides it. Every other platform keeps the old
+  /// behaviour untouched.
+  Map<String, CartItemDiscount> get discountPerCartItem => const {};
 
   void resetValues() {
     user = null;

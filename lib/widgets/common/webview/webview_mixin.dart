@@ -6,6 +6,33 @@ import '../../../common/config.dart';
 import '../../../common/extensions/string_ext.dart';
 
 mixin WebviewMixin {
+  /// Le Voile: does this URL lead to the STOREFRONT's own basket?
+  ///
+  /// A page opened in an in-app webview is a real browser session on the shop
+  /// domain, and Shopify keeps a cart there in a cookie. That cart has NOTHING
+  /// to do with the one the app builds through the Storefront API — different
+  /// contents, different total, and a "Check out" button that walks straight
+  /// past the app's coupon and quantity rules. A customer who reaches it sees
+  /// two shops disagreeing about what they are buying.
+  ///
+  /// Matched on PATH, not on the whole URL, so it holds for whichever domain
+  /// the shop is served from and for any query string Shopify appends.
+  ///
+  /// ⚠ `/checkouts/` is on this list, so this must never be applied to the
+  /// checkout webview itself — that screen's whole job is to load exactly
+  /// these URLs. It is opt-in per webview ([WebView.redirectStoreCartToApp])
+  /// for that reason, and is NOT part of [shouldPreventWebNavigation].
+  static bool isStoreCartUrl(String url) {
+    final path = Uri.tryParse(url)?.path.toLowerCase();
+    if (path == null || path.isEmpty) {
+      return false;
+    }
+    const cartPaths = ['/cart', '/checkout', '/checkouts'];
+    return cartPaths.any(
+      (cartPath) => path == cartPath || path.startsWith('$cartPath/'),
+    );
+  }
+
   /// Return true when overridden and the navigation in webview should stop.
   ///
   /// `externalDomains` is list of domains that should open the external app

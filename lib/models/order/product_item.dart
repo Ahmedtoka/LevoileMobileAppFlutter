@@ -301,7 +301,20 @@ class ProductItem {
       quantity = num.tryParse('${parsedJson['quantity']}')?.toInt() ?? 0;
       // total = parsedJson['variant']?['price']?['amount'];
       total = parsedJson['originalTotalPrice']?['amount'];
-      featuredImage = ((parsedJson['variant'] ?? {})['image'] ?? {})['url'];
+      // Le Voile: the variant's OWN photo when Shopify has one, and the
+      // product's otherwise.
+      //
+      // Only the variant image was read before, and Shopify leaves it null on
+      // every variant the shop did not attach a picture to — which is most of
+      // them, because Le Voile uploads photos to the product and lets the
+      // colours share them. So an order that had just been placed came back
+      // from the API with a picture for nothing in it, and the Thank You
+      // screen showed a column of blank squares. The cart never had this
+      // problem because the cart row already falls back the same way.
+      final variant = parsedJson['variant'];
+      featuredImage =
+          variant?['image']?['url'] ??
+          variant?['product']?['featuredImage']?['url'];
     } catch (e, trace) {
       printLog(e.toString());
       printLog(trace.toString());

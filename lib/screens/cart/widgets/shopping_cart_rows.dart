@@ -170,6 +170,7 @@ class ShoppingCartRows extends StatelessWidget {
       };
 
       return ShoppingCartRow(
+        cartKey: key,
         enabledTextBoxQuantity: enabledTextBoxQuantity,
         enableBottomDivider: !multiStore,
         enableTopDivider: multiStore,

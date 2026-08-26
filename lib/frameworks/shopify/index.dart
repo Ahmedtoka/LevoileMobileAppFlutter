@@ -108,6 +108,29 @@ class ShopifyWidget extends BaseFrameworks
         });
   }
 
+  /// Le Voile: what to CALL a product option in front of the customer.
+  ///
+  /// This row used to print Shopify's own option name with its first letter
+  /// capitalised, while the product page ran the same name through
+  /// `productVariantLanguage` first. So the two screens could disagree: a
+  /// customer picked a colour under a heading that said "Color", added it,
+  /// and the cart called the very same option "Style". Both screens now read
+  /// from the one map, so whatever an option is called, it is called that
+  /// everywhere.
+  ///
+  /// Falls back to the capitalised raw name, which is what this printed
+  /// before, so an option the map says nothing about is unchanged.
+  String _variantLabel(String? lang, String? name) {
+    if (name == null || name.isEmpty) {
+      return '';
+    }
+    final translated = kProductVariantLanguage[lang]?[name.toLowerCase()];
+    if (translated is String && translated.isNotEmpty) {
+      return translated;
+    }
+    return '${name[0].toUpperCase()}${name.substring(1)}';
+  }
+
   @override
   Widget renderVariantCartItem(
     BuildContext context,
@@ -117,6 +140,7 @@ class ShopifyWidget extends BaseFrameworks
     AttributeProductCartStyle style = AttributeProductCartStyle.normal,
   }) {
     var list = <Widget>[];
+    final lang = context.read<AppModel>().langCode;
     for (var att in variation.attributes) {
       final name = att.name;
       final option = att.option;
@@ -129,7 +153,7 @@ class ShopifyWidget extends BaseFrameworks
           children: <Widget>[
             ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 50.0, maxWidth: 200),
-              child: Text('${name?[0].toUpperCase()}${name?.substring(1)} '),
+              child: Text('${_variantLabel(lang, name)} '),
             ),
             name == 'color'
                 ? Expanded(
@@ -513,17 +537,31 @@ class ShopifyWidget extends BaseFrameworks
           // the app has no customer session). This makes the Thank You summary
           // appear on both Android and iOS.
           final snapshotItems = <ProductItem>[];
-          for (final id in cartModel.productsInCart.keys) {
-            final product = cartModel.getProductById(id);
-            final qty = cartModel.productsInCart[id] ?? 1;
-            final lineTotal = cartModel.getProductPrice(id);
+          for (final key in cartModel.productsInCart.keys) {
+            // Le Voile: `productsInCart` is keyed by `productId-variantId`
+            // while `item` — what getProductById reads — is keyed by the
+            // PRODUCT id alone. Passing the raw key here found nothing, every
+            // time, so every row of the Thank You invoice was built from a
+            // null product: no name and no picture. `cleanProductID` is the
+            // same conversion the cart list does before its own lookup.
+            final productId = Product.cleanProductID(key);
+            final product = cartModel.getProductById(productId);
+            final variation = cartModel.getProductVariationById(key);
+            final qty = cartModel.productsInCart[key] ?? 1;
+            final lineTotal = cartModel.getProductPrice(key);
             snapshotItems.add(
               ProductItem.fromLocalJson({
-                'product_id': id,
+                'product_id': productId,
                 'name': product?.name ?? '',
                 'quantity': qty,
                 'total': lineTotal,
-                'featuredImage': product?.imageFeature,
+                // Show the exact colour they bought where Shopify has a photo
+                // for it, and the product photo otherwise — the same order of
+                // preference the cart row uses, so the picture does not change
+                // between the cart and the receipt.
+                'featuredImage': (variation?.imageFeature?.isNotEmpty ?? false)
+                    ? variation!.imageFeature
+                    : product?.imageFeature,
               }),
             );
           }

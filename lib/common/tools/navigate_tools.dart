@@ -244,6 +244,10 @@ class NavigateTools {
             title: config.title,
             script: config.script ?? '',
             requiredLogin: config.requiredLogin,
+            // Le Voile: a banner or menu item can land the customer on the
+            // shop's own website, which carries a second Shopify cart with a
+            // different total. Send any tap on that basket to the app's cart.
+            redirectStoreCartToApp: true,
           ),
         ),
         context: context,
@@ -579,8 +583,11 @@ class NavigateTools {
               unawaited(
                 FluxNavigate.push(
                   MaterialPageRoute(
-                    builder: (context) =>
-                        WebView(productLink, title: product.name),
+                    builder: (context) => WebView(
+                      productLink,
+                      title: product.name,
+                      redirectStoreCartToApp: true,
+                    ),
                   ),
                   context: context,
                   forceRootNavigator: true,

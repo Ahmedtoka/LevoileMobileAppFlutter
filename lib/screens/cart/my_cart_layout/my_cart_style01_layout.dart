@@ -19,7 +19,7 @@ import '../../../widgets/product/cart_item/cart_item_state_ui.dart';
 import '../../../widgets/product/product_bottom_sheet.dart';
 import '../mixins/my_cart_mixin.dart';
 import '../widgets/empty_cart.dart';
-import '../widgets/price_summary_bottom_sheet.dart';
+import '../widgets/order_summary_lines.dart';
 import '../widgets/shopping_cart_rows.dart';
 import '../widgets/shopping_cart_sumary.dart';
 
@@ -262,25 +262,22 @@ class _MyCartStyle01LayoutState extends State<MyCartStyle01Layout>
                   ),
                 ],
               ),
-            if (modelCart.rewardTotal > 0) ...[
+            // Le Voile: the breakdown is printed HERE, in the bar the
+            // customer is already looking at, instead of behind the arrow
+            // that used to sit next to the total. Someone who has just
+            // applied a coupon should not have to discover a tap target to
+            // find out why the total no longer matches their pieces.
+            //
+            // It renders nothing when there is nothing to explain, so an
+            // ordinary cart keeps the compact bar it always had.
+            if (OrderSummaryLines.hasAnyLine(modelCart)) ...[
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      S.of(context).cartDiscount,
-                      style: smallAmountStyle,
-                    ),
-                  ),
-                  Text(
-                    PriceTools.getCurrencyFormatted(
-                      modelCart.rewardTotal,
-                      currencyRate,
-                      currency: currency,
-                    )!,
-                    style: smallAmountStyle,
-                  ),
-                ],
+              OrderSummaryLines(
+                currencyRate: currencyRate,
+                currency: currency,
+                labelStyle: smallAmountStyle,
+                valueStyle: smallAmountStyle,
+                spacing: 6,
               ),
             ],
             const SizedBox(height: 10),
@@ -362,18 +359,6 @@ class _PriceWidget extends StatelessWidget {
   final String? currency;
   final Map<String, dynamic> currencyRate;
 
-  void _showPriceSummaryBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => PriceSummaryBottomSheet(
-        currencyRate: currencyRate,
-        currency: currency,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final modelCart = Provider.of<CartModel>(context);
@@ -399,30 +384,24 @@ class _PriceWidget extends StatelessWidget {
       );
     }
 
-    return GestureDetector(
-      onTap: () => _showPriceSummaryBottomSheet(context),
-      child: Row(
-        children: [
-          Text(
-            PriceTools.getCurrencyFormatted(
-              modelCart.getTotal()!,
-              currencyRate,
-              currency: modelCart.isWalletCart()
-                  ? defaultCurrency?.currencyCode
-                  : currency,
-            )!,
-            style: largeAmountStyle.copyWith(
-              fontWeight: FontWeight.w900,
-              fontSize: 25,
-            ),
-          ),
-          const SizedBox(width: 5),
-          Icon(
-            Icons.keyboard_arrow_up_rounded,
-            color: Theme.of(context).colorScheme.secondary,
-            size: 20,
-          ),
-        ],
+    // Le Voile: no arrow and no tap target any more — the arrow existed only
+    // to open a sheet holding the breakdown that the bar above now prints in
+    // full, and an arrow that reveals nothing new is a promise the screen
+    // cannot keep.
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Text(
+        PriceTools.getCurrencyFormatted(
+          modelCart.getTotal()!,
+          currencyRate,
+          currency: modelCart.isWalletCart()
+              ? defaultCurrency?.currencyCode
+              : currency,
+        )!,
+        style: largeAmountStyle.copyWith(
+          fontWeight: FontWeight.w900,
+          fontSize: 25,
+        ),
       ),
     );
   }

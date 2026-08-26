@@ -1290,6 +1290,9 @@ class ShopifyQuery {
             }
             product {
               id
+              featuredImage {
+                ...imageInformation
+              }
             }
           }
         }
