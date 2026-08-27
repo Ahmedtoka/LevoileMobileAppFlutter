@@ -440,7 +440,34 @@ class ShopifyWidget extends BaseFrameworks
         return;
       }
 
-      error?.call(S.of(context).couponInvalid);
+      // Le Voile: ONE message, because Shopify does not let us tell the two
+      // cases apart.
+      //
+      // 🔴 `cartDiscountCodesUpdate` REPLACES the cart's code list with what
+      // was sent and echoes it back, so a code Shopify has never heard of
+      // comes back as `{code: "XYZ", applicable: false}` — exactly like a real
+      // code that simply does not fit this basket. Inferring "the code exists"
+      // from its presence in that list looks reasonable and is wrong: it is
+      // true for a typo too, and would tell someone who mistyped that their
+      // pieces are already reduced.
+      //
+      // So the wording covers both truthfully and gives the customer something
+      // to act on. The old text — "Your coupon code is invalid" — was the
+      // worse half of that: it sends a customer holding a perfectly good code
+      // to support over a rule working exactly as intended.
+      //
+      // Written here rather than added to the l10n package: `packages/` holds
+      // the vendored InspireUI libraries and a template upgrade overwrites
+      // them, so a new key there would vanish silently. English only, matching
+      // `DefaultLanguage: "en"`.
+      //
+      // No leading "Warning:" — shopping_cart_sumary.dart wraps whatever it is
+      // handed in `S.of(context).warning(...)`, so this has to read correctly
+      // after that prefix.
+      error?.call(
+        'We could not apply this code to your bag. Check the code — and note '
+        'that pieces already reduced are not eligible.',
+      );
     } on Exception catch (e, trace) {
       printLog('::::::::::::::::::: applyCoupon error ::::::::::::::::::::::');
       printError(e, trace);
