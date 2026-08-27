@@ -534,7 +534,17 @@ class ShopifyWidget extends BaseFrameworks
           cartId: cartDataShopify.id,
           discountCode: discountCodeApplied,
         );
-        cartModel.setCartDataShopify(cartAppliedCoupon);
+        // 🔴 Guarded. This wrote the result through unconditionally, and
+        // applyCouponWithCartId returns null on failure — so one flaky call
+        // nulled the model's cart, `discountPerCartItem` went empty, and the
+        // receipt showed no saving anywhere while the customer was charged the
+        // discounted amount. Keeping the cart we already have is strictly
+        // better than throwing it away.
+        if (cartAppliedCoupon != null) {
+          cartModel.setCartDataShopify(cartAppliedCoupon);
+        } else {
+          cartModel.setCartDataShopify(cartDataShopify);
+        }
       } else {
         // Use new cart
         cartModel.setCartDataShopify(cartDataShopify);
@@ -576,12 +586,60 @@ class ShopifyWidget extends BaseFrameworks
             final variation = cartModel.getProductVariationById(key);
             final qty = cartModel.productsInCart[key] ?? 1;
             final lineTotal = cartModel.getProductPrice(key);
-            snapshotItems.add(
-              ProductItem.fromLocalJson({
+
+            // Le Voile: the receipt has to say the same thing the cart said.
+            //
+            // `lineTotal` is what Shopify charges for this line BEFORE any
+            // coupon — i.e. already at the sale price. Two different savings
+            // can sit behind it, and the customer saw both a screen ago:
+            //
+            //   the piece's own markdown  → compare-at vs selling price
+            //   the coupon                → cartModel.discountPerCartItem
+            //
+            // Only ONE before/after pair is printed per line, because three
+            // numbers on one row is arithmetic the customer has to do. The
+            // coupon wins when both apply, matching CartItemPriceBlock: it is
+            // the saving they actively earned, and the cart already showed the
+            // markdown on the way in.
+            final lineDiscount = cartModel.discountPerCartItem[key];
+            double? lineBefore;
+
+            if (lineDiscount != null && lineDiscount.amount > 0) {
+              lineBefore = lineDiscount.subtotal;
+            } else {
+              // No coupon on this line — fall back to the markdown, computed
+              // the same way the cart row computes it. `onSale` is NOT
+              // consulted: ProductVariation.toJson writes `on_sale` while
+              // fromLocalJson reads `onSale`, so it is false for anything
+              // restored from local storage. regularPrice > price IS the test.
+              final was = double.tryParse(
+                (variation != null
+                        ? variation.regularPrice
+                        : product?.regularPrice) ??
+                    '',
+              );
+              final now = double.tryParse(
+                (variation != null ? variation.price : product?.price) ?? '',
+              );
+              if (was != null && now != null && was > now) {
+                lineBefore = was * qty;
+              }
+            }
+
+            final lineFinal = lineDiscount != null
+                ? lineDiscount.total
+                : lineTotal;
+
+            // ⚠️ `subtotal` is set AFTER construction: ProductItem's
+            // fromLocalJson only reads product_id, name, quantity, total and
+            // featuredImage, so a 'subtotal' key in this map would be silently
+            // dropped — and the receipt would quietly go back to one price per
+            // line with no error anywhere.
+            final snapshotItem = ProductItem.fromLocalJson({
                 'product_id': productId,
                 'name': product?.name ?? '',
                 'quantity': qty,
-                'total': lineTotal,
+                'total': lineFinal,
                 // Show the exact colour they bought where Shopify has a photo
                 // for it, and the product photo otherwise — the same order of
                 // preference the cart row uses, so the picture does not change
@@ -589,8 +647,12 @@ class ShopifyWidget extends BaseFrameworks
                 'featuredImage': (variation?.imageFeature?.isNotEmpty ?? false)
                     ? variation!.imageFeature
                     : product?.imageFeature,
-              }),
-            );
+            });
+
+            // Equal to `total` when nothing came off this line, which is what
+            // makes an undiscounted receipt row print a single price.
+            snapshotItem.subtotal = '${lineBefore ?? lineFinal}';
+            snapshotItems.add(snapshotItem);
           }
           unawaited(cartModel.clearCart());
           Analytics.triggerPurchased(
@@ -603,10 +665,49 @@ class ShopifyWidget extends BaseFrameworks
           );
           // Pass the FULL order (items, totals, customer details) to the
           // success screen for logged-in customers; guests get the number.
+          // Le Voile: the receipt's footer now carries the same three lines the
+          // cart's footer did — what the pieces came to, what the coupon took
+          // off, and what was actually paid.
+          //
+          // The numbers come from the CART Shopify returned, not from adding
+          // the rows up here: Shopify decides how a discount is allocated
+          // across lines and rounds each one, so a total computed locally can
+          // disagree with the amount the customer's card was charged by a
+          // piastre or two. The receipt has to match the charge.
+          final paidCart = cartModel.cartDataShopify ?? cartDataShopify;
+
+          // 🔴 `totalDiscount`, NOT `orderDiscount`.
+          //
+          // A Le Voile coupon is a `target_type: line_item` price rule (see
+          // the dashboard's ShopifyDiscounts), and Shopify reports those as
+          // PER-LINE allocations — `cart.lines[].discountAllocations`.
+          // `orderDiscount` folds only the CART-level list, which is empty for
+          // this shape, so the Discount row would have been hidden on every
+          // single order: the one number this whole change exists to show.
+          final couponTotal = paidCart.totalDiscount;
+
           Order successOrder = Order(
             number: orderNum,
-            total: cartDataShopify.cost.totalAmount(),
-          )..lineItems = snapshotItems;
+            // ⚠️ This is the cart total BEFORE the customer picked a delivery
+            // method in the web checkout, so it carries no shipping and no
+            // tax. The app never sees that choice — the checkout is a webview
+            // on Shopify's own domain — so it cannot be corrected from here.
+            // The Shipping row therefore reads 0 and this is the value of the
+            // goods, not necessarily the amount charged.
+            total: paidCart.cost.totalAmount(),
+          )
+            ..lineItems = snapshotItems
+            // 🔴 Grossed up on purpose.
+            //
+            // Storefront `subtotalAmount` is already NET of line-level
+            // discounts, while this screen's convention — set by
+            // Order.fromShopify — is `subtotal` GROSS and `discountTotal` the
+            // saving. Feeding it the net figure made the footer subtract the
+            // coupon twice: 688 − 22 = 666 against a total of 688.
+            ..subtotal = paidCart.cost.subtotalAmount() + couponTotal
+            // A double, not nullable — the success screen already hides the row
+            // when it is 0, so there is nothing to express with null.
+            ..discountTotal = couponTotal;
           final user = cartModel.user;
           if (user != null && (user.cookie?.isNotEmpty ?? false)) {
             final order = await shopifyService.getLatestOrder(

@@ -80,13 +80,62 @@ class ProductReviewWidget extends StatelessWidget {
                 if (addonsOptions.keys.isNotEmpty)
                   HtmlWidget(addonsOptions.values.join(', ')),
                 const SizedBox(height: 7),
-                Text(
-                  PriceTools.getCurrencyFormatted(
-                    item.total ?? 0.0,
-                    rates,
-                    currency: currency ?? currencySelected,
-                  )!,
-                  style: TextStyle(color: colorTitle, fontSize: 14),
+                // Le Voile: the receipt shows the SAME before/after the cart
+                // showed. A customer who chose a piece because it was reduced,
+                // or typed a coupon to get money off, should be able to see
+                // that saving on the thing that proves what they paid.
+                //
+                // `subtotal` is the line before anything came off and `total`
+                // is what they actually paid — both already exist on
+                // ProductItem, and the snapshot in shopify/index.dart is what
+                // fills them. Equal values mean nothing came off this line, so
+                // it prints exactly the single price it always did.
+                Builder(
+                  builder: (context) {
+                    // ⚠️ Both are Strings on ProductItem, not numbers — the
+                    // stock model stores every amount as `.toString()`. They
+                    // have to be parsed before they can be compared, or the
+                    // strike-through would trigger on text ordering.
+                    final total = double.tryParse('${item.total ?? ''}') ?? 0.0;
+                    final before =
+                        double.tryParse('${item.subtotal ?? ''}') ?? total;
+                    String money(double v) => PriceTools.getCurrencyFormatted(
+                      v,
+                      rates,
+                      currency: currency ?? currencySelected,
+                    )!;
+
+                    if (before <= total) {
+                      return Text(
+                        money(total),
+                        style: TextStyle(color: colorTitle, fontSize: 14),
+                      );
+                    }
+
+                    return Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      children: [
+                        Text(
+                          money(before),
+                          style: TextStyle(
+                            color: colorTitle.withValues(alpha: 0.55),
+                            fontSize: 13,
+                            decoration: TextDecoration.lineThrough,
+                            decorationColor: colorTitle.withValues(alpha: 0.55),
+                          ),
+                        ),
+                        Text(
+                          money(total),
+                          style: TextStyle(
+                            color: colorTitle,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 10),
                 QuantitySelection(
