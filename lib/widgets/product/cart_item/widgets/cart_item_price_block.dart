@@ -44,7 +44,30 @@ class CartItemPriceBlock extends StatelessWidget {
     final priceStyle = TextStyle(color: priceColor, fontSize: fontSize);
 
     if (!stateUI.hasDiscount) {
-      return Text(price, style: priceStyle);
+      // Le Voile: the piece's own markdown. Not a cart discount, so it gets no
+      // "🏷 Discount − X" line — there is no coupon to name, and labelling the
+      // shop's own sale price as a discount the customer earned would be a
+      // second, wrong claim on the same row.
+      final wasPrice = stateUI.priceBeforeSale;
+      if (wasPrice == null) {
+        return Text(price, style: priceStyle);
+      }
+
+      return Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 8,
+        children: [
+          Text(
+            wasPrice,
+            style: priceStyle.copyWith(
+              decoration: TextDecoration.lineThrough,
+              decorationColor: priceColor.withValues(alpha: 0.6),
+              color: priceColor.withValues(alpha: 0.6),
+            ),
+          ),
+          Text(price, style: priceStyle.copyWith(fontWeight: FontWeight.w700)),
+        ],
+      );
     }
 
     // The same red the cart summary already uses for its discount amounts — a

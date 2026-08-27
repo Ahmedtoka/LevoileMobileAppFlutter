@@ -156,6 +156,49 @@ class ShoppingCartRow extends StatelessWidget with ActionButtonMixin {
         final priceAfterDiscount =
             discount == null ? null : formatMoney(discount.total / units);
 
+        // Le Voile: the piece's OWN reduction, which is not a cart discount at
+        // all — `discountPerCartItem` only ever carries what a coupon or an
+        // automatic cart rule took off. A product the merchant marked down
+        // arrives here already at its sale price, so the cart showed one plain
+        // number and the saving the customer was shopping for vanished at the
+        // last screen before paying.
+        //
+        // Shown ONLY when no cart discount landed on the row. With both, the
+        // row would carry three prices and the customer would have to work out
+        // which two of them subtract — and the coupon breakdown above is
+        // already correct, because Shopify's line subtotal is the SALE price.
+        // 🔴 `onSale` is deliberately NOT consulted, and the reason is a trap:
+        // `ProductVariation.toJson()` writes the key `on_sale` while
+        // `fromLocalJson()` reads `onSale`, so the flag comes back FALSE for
+        // every row restored from local storage. That path runs on every cold
+        // launch for a guest — most of this app's carts — so gating on it made
+        // the strike-through appear when the piece was added and quietly
+        // disappear the next time the app was opened.
+        //
+        // Comparing the two prices is the same test anyway: Shopify's mapping
+        // is `regularPrice = isOnSale ? compareAtPrice : price`, so a
+        // regularPrice ABOVE the selling price only ever means "on sale". It
+        // also guards bad catalogue data — a compare-at at or below the
+        // selling price would print a struck-out number the customer can only
+        // read as the shop pricing itself wrong.
+        final saleVariation = cartItemMetaData?.variation;
+        final wasPrice = double.tryParse(
+          (saleVariation != null
+                  ? saleVariation.regularPrice
+                  : product.regularPrice) ??
+              '',
+        );
+        final nowPrice = double.tryParse(
+          (saleVariation != null ? saleVariation.price : product.price) ?? '',
+        );
+        final priceBeforeSale =
+            discount == null &&
+                wasPrice != null &&
+                nowPrice != null &&
+                wasPrice > nowPrice
+            ? formatMoney(wasPrice)
+            : null;
+
         final stateUI = CartItemStateUI(
           enableBottomDivider: enableBottomDivider,
           inStock: inStock,
@@ -176,6 +219,7 @@ class ShoppingCartRow extends StatelessWidget with ActionButtonMixin {
           priceAfterDiscount: priceAfterDiscount,
           discountAmount: discountAmount,
           discountLabel: discount?.label,
+          priceBeforeSale: priceBeforeSale,
           quantity: quantity,
         );
 

@@ -57,6 +57,24 @@ class CartItemStateUI {
   /// campaign title of an automatic one. Null when unnamed.
   final String? discountLabel;
 
+  /// Le Voile: the product's OWN "was" price, when the piece is on sale.
+  ///
+  /// A different thing from [priceBeforeDiscount], and the two must not be
+  /// confused:
+  ///
+  ///   priceBeforeDiscount → what a COUPON or an automatic cart discount took
+  ///                         off this row. Comes from Shopify's cart.
+  ///   priceBeforeSale     → the compare-at price the merchant set on the
+  ///                         VARIANT. Nothing to do with the cart; it is why
+  ///                         the product card shows "Save 30%".
+  ///
+  /// The cart used to print only the selling price, so a piece the customer
+  /// chose *because* it was reduced showed no sign of it once it reached the
+  /// basket — the saving they were shopping for disappeared at the last step.
+  ///
+  /// PER UNIT, like [price]. Null when the piece is not reduced.
+  final String? priceBeforeSale;
+
   final bool isOnBackorder;
   final bool inStock;
   final dynamic limitQuantity;
@@ -80,6 +98,7 @@ class CartItemStateUI {
     this.priceAfterDiscount,
     this.discountAmount,
     this.discountLabel,
+    this.priceBeforeSale,
     required this.isOnBackorder,
     required this.inStock,
     this.limitQuantity,
