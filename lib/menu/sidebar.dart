@@ -21,6 +21,7 @@ import '../screens/custom/contact_screen.dart';
 import '../screens/custom/policy_screen.dart';
 import '../screens/custom/about_screen.dart';
 import '../screens/custom/my_coupons_screen.dart';
+import '../screens/custom/outfits_screen.dart';
 import '../screens/custom/store_locator_screen.dart';
 import '../widgets/common/index.dart' show WebView;
 import '../widgets/general/index.dart';
@@ -336,6 +337,17 @@ class MenuBarState extends State<SideBarMenu> {
                   size: 20, color: iconColor),
               title: Text(item?.title ?? 'My Coupons', style: textStyle),
               onTap: () => pushNavigator(screen: const MyCouponsScreen()),
+            );
+          }
+          // Le Voile: "shop the look". Replaces pointing a `web` row at the
+          // Shopify lookbook page, which filled a second basket the app could
+          // not see — see CLAUDE.md, "The lookbook webview has its own cart".
+          if (has('outfits')) {
+            return ListTile(
+              leading: Icon(Icons.checkroom_rounded,
+                  size: 20, color: iconColor),
+              title: Text(item?.title ?? 'Shop the Look', style: textStyle),
+              onTap: () => pushNavigator(screen: const LvOutfitsScreen()),
             );
           }
           if (has('branches')) {

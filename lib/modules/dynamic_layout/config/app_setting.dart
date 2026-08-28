@@ -42,6 +42,13 @@ class AppSetting {
   /// Read by LvSearchIntro.
   Map lvSearch = {};
 
+  /// Le Voile: "shop the look" — the outfits screen reached from the side menu.
+  ///
+  /// 🔴 Carries NO prices, deliberately. Only which variant of which product,
+  /// so the app can read every amount live from Shopify and never advertise a
+  /// total the checkout will not charge. Read by LvOutfitsScreen.
+  Map lvOutfits = {};
+
   /// Le Voile: wording + colours of the product-card chips, from
   /// Setting.ProductBadges. The discount PERCENTAGE is not in here — the app
   /// computes it from the product's own prices so it can never disagree with
@@ -137,6 +144,11 @@ class AppSetting {
     // Le Voile: the search screen's empty state.
     if (config['LvSearch'] is Map) {
       lvSearch = config['LvSearch'];
+    }
+
+    // Le Voile: shop-the-look outfits.
+    if (config['LvOutfits'] is Map) {
+      lvOutfits = config['LvOutfits'];
     }
 
     // Le Voile: product-card chip wording and colours.
