@@ -65,7 +65,10 @@ class LvOutfitsScreen extends StatelessWidget {
                 if (subtitle.isNotEmpty)
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+                      // Bottom is small because the grid below carries its own
+                      // top padding — the two together make the gap, so it
+                      // stays the same whether or not there is a subtitle.
+                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 4),
                       child: Text(
                         subtitle,
                         textAlign: TextAlign.center,
@@ -74,7 +77,10 @@ class LvOutfitsScreen extends StatelessWidget {
                     ),
                   ),
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  // Top 16, so the first row of photos does not sit flush
+                  // against the app bar. Bottom clears the floating Home
+                  // button, which paints over the last row otherwise.
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
                   sliver: SliverGrid(
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
@@ -399,7 +405,13 @@ class _OutfitSheetState extends State<_OutfitSheet> {
                   20,
                   12,
                   20,
-                  20 + MediaQuery.of(context).padding.bottom,
+                  // Clear of the floating Home button, not just of the gesture
+                  // bar. The tab bar's centre button is docked in a notch and
+                  // rises ABOVE the bar (TabBarFloating: height 58, notchMargin
+                  // 6, centerDocked), and it paints over this sheet — so the
+                  // system inset alone left "ADD FULL OUTFIT TO CART" sitting
+                  // underneath it. Same reasoning as LvToast's `+ 96`.
+                  76 + MediaQuery.of(context).padding.bottom,
                 ),
                 child: Column(
                   children: [
