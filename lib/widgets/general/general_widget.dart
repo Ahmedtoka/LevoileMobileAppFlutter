@@ -56,6 +56,32 @@ abstract class GeneralWidget extends StatelessWidget {
 
   void onTap(BuildContext context) {}
 
+  /// What sits to the left of the row: the chosen glyph, an uploaded picture,
+  /// or nothing — per the dashboard's per-row Icon Mode setting. A config
+  /// written before that setting existed has no `iconMode`, which defaults to
+  /// 'icon' so it keeps showing the glyph exactly as before.
+  Widget? leadingWidget(IconData icon) {
+    final mode = item?.iconMode ?? 'icon';
+    if (mode == 'none') return null;
+
+    final image = item?.menuImage;
+    if (mode == 'image' && (image?.isNotEmpty ?? false)) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: FluxImage(
+          imageUrl: image!,
+          width: 24,
+          height: 24,
+          fit: BoxFit.cover,
+          // A broken URL must not take the drawer down with it.
+          errorWidget: Icon(icon, color: iconColor),
+        ),
+      );
+    }
+
+    return Icon(icon, color: iconColor);
+  }
+
   @override
   Widget build(BuildContext context) {
     var icon = Icons.error;
@@ -68,7 +94,7 @@ abstract class GeneralWidget extends StatelessWidget {
     }
     if (useTile) {
       return ListTile(
-        leading: Icon(icon, color: iconColor),
+        leading: leadingWidget(icon),
         title: Text(title, style: textStyle),
         onTap: () => onTap(context),
       );

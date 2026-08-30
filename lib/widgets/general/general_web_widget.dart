@@ -92,6 +92,14 @@ class GeneralWebWidget extends GeneralWidget {
           };
         }
 
+        if (useTile) {
+          return ListTile(
+            leading: leadingWidget(icon),
+            title: Text(title, style: textStyle),
+            onTap: onTap,
+          );
+        }
+
         return SettingItemWidget(
           icon: icon,
           title: title,

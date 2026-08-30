@@ -12,7 +12,7 @@ description: Mobile commerce app by Flutter
 #   So +10 would have been rejected on upload, not at review.
 # Bumped past it with room to spare; check Play Console's versionCode before
 # the AAB too, and never re-add a literal version to project.pbxproj.
-version: 1.6.3+13
+version: 1.6.3+20
 
 environment:
   sdk: ">=3.10.0 <4.0.0"

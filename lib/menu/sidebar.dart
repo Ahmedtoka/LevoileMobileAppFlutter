@@ -313,16 +313,14 @@ class MenuBarState extends State<SideBarMenu> {
           // Le Voile native pages.
           if (has('contact')) {
             return ListTile(
-              leading: Icon(Icons.headset_mic_rounded,
-                  size: 20, color: iconColor),
+              leading: nativeLeading(item, Icons.headset_mic_rounded),
               title: Text(item?.title ?? 'Contact Us', style: textStyle),
               onTap: () => pushNavigator(screen: const ContactScreen()),
             );
           }
           if (has('policy')) {
             return ListTile(
-              leading: Icon(Icons.assignment_return_rounded,
-                  size: 20, color: iconColor),
+              leading: nativeLeading(item, Icons.assignment_return_rounded),
               title: Text(
                 item?.title ?? 'Exchange & Return',
                 style: textStyle,
@@ -333,8 +331,7 @@ class MenuBarState extends State<SideBarMenu> {
           // Le Voile native pages — My Coupons, Branches, About.
           if (has('coupons')) {
             return ListTile(
-              leading: Icon(Icons.local_activity_rounded,
-                  size: 20, color: iconColor),
+              leading: nativeLeading(item, Icons.local_activity_rounded),
               title: Text(item?.title ?? 'My Coupons', style: textStyle),
               onTap: () => pushNavigator(screen: const MyCouponsScreen()),
             );
@@ -344,24 +341,21 @@ class MenuBarState extends State<SideBarMenu> {
           // not see — see CLAUDE.md, "The lookbook webview has its own cart".
           if (has('outfits')) {
             return ListTile(
-              leading: Icon(Icons.checkroom_rounded,
-                  size: 20, color: iconColor),
+              leading: nativeLeading(item, Icons.checkroom_rounded),
               title: Text(item?.title ?? 'Shop the Look', style: textStyle),
               onTap: () => pushNavigator(screen: const LvOutfitsScreen()),
             );
           }
           if (has('branches')) {
             return ListTile(
-              leading: Icon(Icons.storefront_outlined,
-                  size: 20, color: iconColor),
+              leading: nativeLeading(item, Icons.storefront_outlined),
               title: Text(item?.title ?? 'Branches', style: textStyle),
               onTap: () => pushNavigator(screen: const StoreLocatorScreen()),
             );
           }
           if (has('about')) {
             return ListTile(
-              leading: Icon(Icons.info_outline_rounded,
-                  size: 20, color: iconColor),
+              leading: nativeLeading(item, Icons.info_outline_rounded),
               title: Text(item?.title ?? 'About Us', style: textStyle),
               onTap: () => pushNavigator(screen: const AboutScreen()),
             );
@@ -483,6 +477,33 @@ class MenuBarState extends State<SideBarMenu> {
       size: 20,
       color: iconColor,
     );
+  }
+
+  /// Same Icon Mode decision as [leadingFor], for the native pages below
+  /// (Contact, Policy, My Coupons, Shop the Look, Branches, About). Their
+  /// glyph is fixed by the page itself rather than read from `item.icon`, but
+  /// Text-only / Image still has to be able to turn it off or replace it —
+  /// otherwise picking "Text only" for one of these rows left the default
+  /// glyph on screen since nothing here ever looked at iconMode.
+  Widget? nativeLeading(GeneralSettingItem? item, IconData defaultIcon) {
+    final mode = item?.iconMode ?? 'icon';
+    if (mode == 'none') return null;
+
+    final image = item?.menuImage;
+    if (mode == 'image' && (image?.isNotEmpty ?? false)) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: FluxImage(
+          imageUrl: image!,
+          width: 20,
+          height: 20,
+          fit: BoxFit.cover,
+          errorWidget: Icon(defaultIcon, size: 20, color: iconColor),
+        ),
+      );
+    }
+
+    return Icon(defaultIcon, size: 20, color: iconColor);
   }
 
   /// A curated drawer category that has sub-categories beneath it.
