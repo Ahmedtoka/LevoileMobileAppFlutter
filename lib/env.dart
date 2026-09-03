@@ -15,21 +15,28 @@ Map<String, dynamic> environment = {
     /// Wordpress blog, it could be removed if using the same above url
     'blog': 'https://levoilestores.myshopify.com',
   },
-  /// Le Voile: OFF deliberately.
+  /// Le Voile: ON. Shopify's hosted Customer Account page (Google, email) is
+  /// the primary sign-in; Sign in with Apple runs alongside it through our own
+  /// bridge (loginSetting.appleLoginSetting.bridgeEndpoint), which returns a
+  /// classic Storefront customer access token.
   ///
-  /// Shopify's new Customer Accounts sign-in is a hosted page that offers
-  /// Google but has no Sign in with Apple, and its Customer Account API cannot
-  /// mint a session from a third-party identity token — which is what App Store
-  /// guideline 4.8 requires us to provide. So the app uses classic Storefront
-  /// customer auth, and Sign in with Apple goes through our bridge
-  /// (loginSetting.appleLoginSetting.bridgeEndpoint) which returns a Storefront
-  /// customer access token. Both login paths then produce the same token type.
+  /// The two do not collide: login_screen.dart renders the native Apple
+  /// button in BOTH modes (it is built once, outside the
+  /// `shopifyCustomerAccountConfig.enabled` branch — see the comment at
+  /// login_screen.dart's `appleSignInButton`), so guideline 4.8 stays
+  /// satisfied. Downstream, User.fromShopifyCustomerAccount is the only
+  /// constructor that sets `isSocial: true`, so an Apple-signed-in customer
+  /// (isSocial: false, classic token) keeps using the classic Storefront API
+  /// for profile/orders/addresses while a Customer-Account-API customer uses
+  /// the new one — ShopifyService.isCustomerAccountEnabled reads that flag per
+  /// user, not globally.
   ///
-  /// Requires "Classic customer accounts" in Shopify admin
-  /// (Settings -> Customer accounts). Turning this back on will hide Sign in
-  /// with Apple's counterpart flows and re-break guideline 4.8.
+  /// One real side effect: the in-app Register screen is hidden while this is
+  /// on (login_screen.dart: `if (kLoginSetting.enableRegister &&
+  /// !shopifyCustomerAccountConfig.enabled)`) — sign-up happens inside
+  /// Shopify's hosted page instead.
   'shopifyCustomerAccountConfig': {
-    'enabled': false,
+    'enabled': true,
     'clientId': '7f5487a1-34ed-41c6-b04d-531064d2c57c',
     'shopId': '85284847908',
   },

@@ -510,9 +510,12 @@ class MenuBarState extends State<SideBarMenu> {
   ///
   /// Tapping the row expands or collapses it — it never navigates, so the whole
   /// row is one predictable target and label-only groups (which have no
-  /// collection of their own to open) behave the same as the rest. Each child
-  /// is a normal [GeneralCategoryWidget], so it navigates through exactly the
-  /// same path as a flat category tile.
+  /// collection of their own to open) behave the same as the rest. Recursive:
+  /// a child with children of its own nests another [ExpansionTile] instead of
+  /// a flat tile, so the dashboard's Categories Tree / Side Menu can nest to
+  /// any depth (category → sub-category → sub-sub-category → …) and the
+  /// drawer follows it exactly, rather than silently dropping everything past
+  /// one level the way it used to.
   Widget buildCategoryGroup(GeneralSettingItem item) {
     return Theme(
       // ExpansionTile draws a divider above and below when open; the drawer
@@ -530,13 +533,15 @@ class MenuBarState extends State<SideBarMenu> {
           for (final child in item.children)
             Padding(
               padding: const EdgeInsets.only(left: 16),
-              child: GeneralCategoryWidget(
-                item: child,
-                useTile: true,
-                iconColor: iconColor,
-                textStyle: textStyle,
-                onNavigator: onNavigator,
-              ),
+              child: child.children.isNotEmpty
+                  ? buildCategoryGroup(child)
+                  : GeneralCategoryWidget(
+                      item: child,
+                      useTile: true,
+                      iconColor: iconColor,
+                      textStyle: textStyle,
+                      onNavigator: onNavigator,
+                    ),
             ),
         ],
       ),

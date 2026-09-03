@@ -203,7 +203,16 @@ class _RegistrationScreenMobileState
     final invalidUsername =
         (requireUsernameWhenRegister &&
         (username?.trim().isEmpty ?? true && isPlatformSupported));
-    final invalidEmail = emailAddress?.trim().isEmpty ?? true;
+    // Trimmed here, once, before validation AND before either reaches
+    // Shopify. Login already trims both on submit (login_mixin.dart); the
+    // password field is also obscureText, so a trailing space from a swipe
+    // keyboard is invisible on screen. A value stored untrimmed here could
+    // never be typed back in on the login screen — the account would work
+    // only once, at registration, and every later "wrong password" report
+    // would be this exact mismatch.
+    emailAddress = emailAddress?.trim();
+    password = password?.trim();
+    final invalidEmail = emailAddress?.isEmpty ?? true;
     final invalidPassword = password?.isEmpty ?? true;
     final invalidPhoneNumber =
         (showPhoneNumberWhenRegister &&

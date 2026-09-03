@@ -1,2 +1,12 @@
 #include "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
 #include "Generated.xcconfig"
+
+// The Runner target's Debug config has no ONLY_ACTIVE_ARCH override anywhere
+// in project.pbxproj, so it falls back to Xcode's default of NO — meaning a
+// simulator run tries to link BOTH arm64 and x86_64, even on an Apple Silicon
+// Mac. RazorpayStandard.xcframework only ships an arm64 simulator slice, so
+// the x86_64 pass fails link with "Framework 'RazorpayStandard' not found" —
+// not a missing/broken pod, just an unnecessary architecture being requested.
+// YES restores the normal Xcode-template behavior: build only the active
+// destination's architecture.
+ONLY_ACTIVE_ARCH = YES

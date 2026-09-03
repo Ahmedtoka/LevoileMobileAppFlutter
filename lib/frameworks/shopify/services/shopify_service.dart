@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kDebugMode, TargetPlatform;
 import 'package:flux_localization/flux_localization.dart';
 import 'package:flux_ui/flux_ui.dart' as store_model;
 import 'package:flux_ui/flux_ui.dart';
@@ -1161,8 +1162,14 @@ class ShopifyService extends BaseServices {
       // whatever they catch, and `Exception('x').toString()` is "Exception: x"
       // — which is how "Warning: Exception: Please check your username…"
       // reached a customer's screen.
+      //
+      // DEBUG BUILDS ONLY: the real Shopify error is appended so it is
+      // readable straight off the screen instead of scrolled-past terminal
+      // output. Never happens in release — a customer must only ever see the
+      // friendly sentence.
       throw 'Please check your email or password and try again. '
-          'If you signed up with Apple, use the Sign in with Apple button.';
+          'If you signed up with Apple, use the Sign in with Apple button.'
+          '${kDebugMode ? '\n\n[debug] ${e.toString()}' : ''}';
     }
   }
 

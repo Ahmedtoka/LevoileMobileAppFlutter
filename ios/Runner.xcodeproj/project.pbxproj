@@ -1105,11 +1105,11 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Q8596AFPV8;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.6.4;
-				FLUTTER_BUILD_NUMBER = 14;
+				FLUTTER_BUILD_NAME = 1.6.6;
+				FLUTTER_BUILD_NUMBER = 16;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
@@ -1126,7 +1126,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 1.6.4;
+				MARKETING_VERSION = 1.6.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -1378,11 +1378,11 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Q8596AFPV8;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.6.4;
-				FLUTTER_BUILD_NUMBER = 14;
+				FLUTTER_BUILD_NAME = 1.6.6;
+				FLUTTER_BUILD_NUMBER = 16;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
@@ -1399,7 +1399,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 1.6.4;
+				MARKETING_VERSION = 1.6.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -1424,11 +1424,11 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Q8596AFPV8;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.6.4;
-				FLUTTER_BUILD_NUMBER = 14;
+				FLUTTER_BUILD_NAME = 1.6.6;
+				FLUTTER_BUILD_NUMBER = 16;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
@@ -1445,7 +1445,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 1.6.4;
+				MARKETING_VERSION = 1.6.6;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
