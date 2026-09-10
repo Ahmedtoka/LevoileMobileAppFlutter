@@ -1108,7 +1108,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Q8596AFPV8;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.6.6;
+				FLUTTER_BUILD_NAME = 1.6.8;
 				FLUTTER_BUILD_NUMBER = 16;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1126,7 +1126,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 1.6.6;
+				MARKETING_VERSION = 1.6.8;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -1381,7 +1381,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Q8596AFPV8;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.6.6;
+				FLUTTER_BUILD_NAME = 1.6.8;
 				FLUTTER_BUILD_NUMBER = 16;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1399,7 +1399,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 1.6.6;
+				MARKETING_VERSION = 1.6.8;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -1427,7 +1427,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Q8596AFPV8;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.6.6;
+				FLUTTER_BUILD_NAME = 1.6.8;
 				FLUTTER_BUILD_NUMBER = 16;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1445,7 +1445,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 1.6.6;
+				MARKETING_VERSION = 1.6.8;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

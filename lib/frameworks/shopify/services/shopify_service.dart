@@ -423,7 +423,7 @@ class ShopifyService extends BaseServices {
   }
 
   String getProductCollectionSortKey(orderBy) {
-    // if (onSale == true) return 'BEST_SELLING';
+    if (orderBy == 'popularity') return 'BEST_SELLING';
 
     if (orderBy == 'price') return 'PRICE';
 
@@ -431,7 +431,12 @@ class ShopifyService extends BaseServices {
 
     if (orderBy == 'title') return 'TITLE';
 
-    return 'MANUAL';
+    // No sort chosen: defer to the collection's own sort order as configured
+    // in the Shopify admin (manual, best-selling, price, ...) — the same
+    // order the storefront website shows by default. `MANUAL` here would
+    // force manual order even on collections configured to sort another way,
+    // which is why the app's order used to disagree with the website.
+    return 'COLLECTION_DEFAULT';
   }
 
   String getProductSortKey(orderBy) {

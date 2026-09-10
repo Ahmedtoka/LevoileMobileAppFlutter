@@ -390,6 +390,7 @@ class ShopifyWidget extends BaseFrameworks
     OrderByType.date,
     OrderByType.price,
     OrderByType.title,
+    OrderByType.popularity,
   ];
 
   @override

@@ -158,7 +158,22 @@ class WelcomeCouponFlow {
       );
       await _maybeShowOnline(navKey);
       await _requestNotification(ctx());
+      return;
     }
+
+    // Case C: the welcome pool was empty from the very first launch claim —
+    // no coupon, and the server never even reached `needs_phone` because
+    // there was nothing to give (Coupon::claimFor's step 4b). Falling through
+    // here used to do nothing at all: not just silence on the welcome side
+    // (arguably fine — there is nothing to show), but it also skipped the
+    // ONLINE coupon check entirely, an independent pool with nothing to do
+    // with the welcome pool being dry. A customer who qualified for the
+    // online coupon was denied it too, for a reason that had nothing to do
+    // with them.
+    _shownThisSession = true;
+    debugPrint('🎟️[CouponFlow] no welcome coupon and no needs_phone — '
+        'pool is likely empty; still checking the online coupon');
+    await _maybeShowOnline(navKey);
   }
 
   /// Asks for notification permission AFTER the welcome-coupon popup — this is

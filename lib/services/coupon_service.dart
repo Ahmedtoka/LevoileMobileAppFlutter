@@ -333,6 +333,10 @@ class CouponService {
       return;
     }
     if (_base == null) {
+      // Same reasoning as the !ready branch above: nothing was claimed, so a
+      // later call (e.g. once kAppConfig is actually set) must be allowed to
+      // retry instead of being permanently skipped by a stale `true` here.
+      _initialized = false;
       debugPrint('🎟️[Coupon] ⛔ no base URL (appConfig not http) — skipping');
       return;
     }
@@ -435,6 +439,17 @@ class CouponService {
           if (kDebugMode) debugPrint('🎟️[Coupon] → granted coupon=${coupon.value?.code} '
               '(from phone entry)');
         }
+      } else if (body['success'] == false) {
+        // Every other shape reaching this point is the "pool empty" response
+        // (`{success:false, message:'No coupons available.'}` — the
+        // needs_phone:true case already returned above). This used to vanish
+        // completely: no coupon, no error, nothing a customer or an admin
+        // could see — which is exactly the "customers say no coupon shows
+        // up" symptom with no way to tell it apart from any other failure.
+        // Reporting it turns an empty pool into a countable signal instead
+        // of an unexplainable support ticket.
+        debugPrint('🎟️[Coupon] ⛔ pool empty for this device: ${body['message']}');
+        unawaited(_reportPoolEmpty());
       }
     } catch (e) {
       debugPrint('🎟️[Coupon] ⛔ claim failed: $e');
@@ -537,6 +552,34 @@ class CouponService {
   /// prompt is allowed to appear again.
   Future<void> clearPhoneDeclined() =>
       SecureStorage().write(_kPhoneDeclinedKey, '');
+
+  /// Reports an empty welcome-coupon pool to the dashboard's generic events
+  /// log, so it shows up as a countable, timestamped signal (`/events`,
+  /// `name=coupon_pool_empty`) instead of only a customer complaint with no
+  /// way to tell when it started or how often it happens. `track()` can't be
+  /// reused for this — its event names are limited to a fixed set of funnel
+  /// columns on the device row (open/signup/login/popup_shown/heartbeat).
+  Future<void> _reportPoolEmpty() async {
+    final base = _base;
+    if (base == null) return;
+    try {
+      await http
+          .post(
+            Uri.parse('$base/events'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: jsonEncode({
+              'name': 'coupon_pool_empty',
+              'params': {'device_id': _deviceId(), 'platform': _platform()},
+            }),
+          )
+          .timeout(const Duration(seconds: 6));
+    } catch (_) {
+      // Best-effort only — never let telemetry affect the claim flow.
+    }
+  }
 
   /// Reports a funnel/presence event to the dashboard, keyed by device id.
   /// event = open | signup | login | popup_shown | heartbeat
