@@ -361,8 +361,8 @@
       "colorActiveIcon": "ff9e197e",
       "iconSize": 22.968195913186673,
       "indicatorStyle": "material",
-      "showFloatingClip": true,
-      "showFloating": true,
+      "showFloatingClip": false,
+      "showFloating": false,
       "enableOnTop": false,
       "enableDivider": true,
       "radiusTopLeft": 0.0,
@@ -394,7 +394,7 @@
         "paintingStyle": "fill"
       },
       "TabBarFloating": {
-        "position": 2,
+        "position": 0,
         "radius": 50.0,
         "color": "ff9e197e",
         "location": "centerDocked",
@@ -418,16 +418,13 @@
   },
   "TabBar": [
     {
-      "layout": "storeLocator",
-      "title": "الفروع",
-      "url": "https://levoilestores.com/pages/our-branches",
-      "icon": "storefront",
-      "fontFamily": "MaterialIcons",
+      "layout": "home",
+      "icon": "home",
       "pos": 100,
-      "defaultTab": false,
-      "fullscreen": false,
-      "showOriginalColor": false,
-      "key": "branch001"
+      "fontFamily": "CupertinoIcons",
+      "key": "p1q235ba14",
+      "defaultTab": true,
+      "label": "الرئيسية"
     },
     {
       "pos": 200,
@@ -466,15 +463,19 @@
           "name": "رجل"
         }
       ],
-      "defaultTab": false
+      "defaultTab": false,
+      "label": "الأقسام"
     },
     {
-      "layout": "home",
-      "icon": "home",
-      "pos": 100,
-      "fontFamily": "CupertinoIcons",
-      "key": "p1q235ba14",
-      "defaultTab": true
+      "layout": "backdrop",
+      "cateId": "gid://shopify/Collection/481128939812",
+      "cateName": "التخفيضات",
+      "label": "التخفيضات",
+      "icon": "local_offer",
+      "fontFamily": "MaterialIcons",
+      "pos": 150,
+      "key": "lvSaleTab",
+      "defaultTab": false
     },
     {
       "pos": 400,
@@ -483,7 +484,8 @@
       "categoryLayout": "cart",
       "key": "a2xts0oou6",
       "fontFamily": "CupertinoIcons",
-      "defaultTab": false
+      "defaultTab": false,
+      "label": "السلة"
     },
     {
       "layout": "profile",
@@ -502,7 +504,8 @@
         "rating",
         "lvPrivacy",
         "lvReturn",
-        "lvAbout"
+        "lvAbout",
+        "lvLocation"
       ],
       "subGeneralSetting": {
         "privacy": {
@@ -537,7 +540,8 @@
         }
       },
       "background": null,
-      "showBackground": false
+      "showBackground": false,
+      "label": "حسابي"
     }
   ],
   "searchSuggestion": [],

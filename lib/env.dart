@@ -411,21 +411,25 @@ Map<String, dynamic> environment = {
 
     "FAQPageUrl": "https://products.inspireui.com/have-a-question/",
 
+    /// Le Voile's own accounts, taken from the storefront footer. The
+    /// template shipped InspireUI's demo links (incl. a Twitter that no
+    /// longer exists), and the dashboard does not send this key, so whatever
+    /// sits here is what the app actually shows.
     "SocialConnectUrl": [
-      {
-        "name": "Youtube",
-        "icon": "assets/icons/brands/youtube.svg",
-        "url": "https://www.youtube.com/inspireui?sub_confirmation=1",
-      },
       {
         "name": "Facebook",
         "icon": "assets/icons/brands/facebook.svg",
-        "url": "https://www.facebook.com/inspireUI/",
+        "url": "https://www.facebook.com/share/17uMmJSGsJ/",
       },
       {
-        "name": "Twitter",
-        "icon": "assets/icons/brands/twitter.svg",
-        "url": "https://twitter.com/InspireUI",
+        "name": "Instagram",
+        "icon": "assets/icons/brands/instagram.svg",
+        "url": "https://www.instagram.com/levoilestores/",
+      },
+      {
+        "name": "TikTok",
+        "icon": "assets/icons/brands/tiktok.svg",
+        "url": "https://www.tiktok.com/@le.voile.stores",
       },
     ],
 

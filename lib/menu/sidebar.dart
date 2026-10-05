@@ -6,6 +6,7 @@ import 'package:flux_localization/flux_localization.dart';
 import 'package:flux_ui/flux_ui.dart';
 import 'package:inspireui/icons/icon_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../common/config.dart';
 import '../common/config/models/index.dart';
@@ -22,9 +23,9 @@ import '../screens/custom/policy_screen.dart';
 import '../screens/custom/about_screen.dart';
 import '../screens/custom/my_coupons_screen.dart';
 import '../screens/custom/outfits_screen.dart';
-import '../screens/custom/store_locator_screen.dart';
 import '../widgets/common/index.dart' show WebView;
 import '../widgets/general/index.dart';
+import '../widgets/web_layout/widgets/follow_social_widget.dart';
 import 'maintab_delegate.dart';
 
 class SideBarMenu extends StatefulWidget {
@@ -67,7 +68,7 @@ class MenuBarState extends State<SideBarMenu> {
     }
     if (screen != null) {
       // Push onto the active tab's nested navigator so the bottom tab bar
-      // (Home / Branches / Cart) stays visible — same behaviour as opening a
+      // (Home / Cart / Account) stays visible — same behaviour as opening a
       // page from inside My Account. Falls back to the root navigator if the
       // tab navigator isn't available.
       final tabNavigator =
@@ -85,6 +86,14 @@ class MenuBarState extends State<SideBarMenu> {
 
   void onNavigator() {
     eventBus.fire(const EventCloseNativeDrawer());
+  }
+
+  Future<void> _onTapOpenSocialUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   @override
@@ -139,6 +148,28 @@ class MenuBarState extends State<SideBarMenu> {
                   drawer.subDrawerItem ?? {},
                 );
               }),
+              // Le Voile: Facebook / Instagram / TikTok row at the bottom of
+              // the drawer, sourced from the dashboard's SocialConnectUrl
+              // config (same list FollowSocialWidget already renders on the
+              // web footer) — empty when unconfigured, so no stray divider.
+              if (kAdvanceConfig.socialConnectUrls.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Divider(height: 1),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  child: FollowSocialWidget(
+                    padding: EdgeInsets.zero,
+                    sizeIcon: 26,
+                    color: iconColor,
+                    onTap: _onTapOpenSocialUrl,
+                  ),
+                ),
+              ],
               Layout.isDisplayDesktop(context)
                   ? const SizedBox(height: 300)
                   : const SizedBox(height: 24),
@@ -312,11 +343,7 @@ class MenuBarState extends State<SideBarMenu> {
 
           // Le Voile native pages.
           if (has('contact')) {
-            return ListTile(
-              leading: nativeLeading(item, Icons.headset_mic_rounded),
-              title: Text(item?.title ?? 'Contact Us', style: textStyle),
-              onTap: () => pushNavigator(screen: const ContactScreen()),
-            );
+            return buildContactUsGroup(item);
           }
           if (has('policy')) {
             return ListTile(
@@ -328,7 +355,7 @@ class MenuBarState extends State<SideBarMenu> {
               onTap: () => pushNavigator(screen: const PolicyScreen()),
             );
           }
-          // Le Voile native pages — My Coupons, Branches, About.
+          // Le Voile native pages — My Coupons, About.
           if (has('coupons')) {
             return ListTile(
               leading: nativeLeading(item, Icons.local_activity_rounded),
@@ -344,13 +371,6 @@ class MenuBarState extends State<SideBarMenu> {
               leading: nativeLeading(item, Icons.checkroom_rounded),
               title: Text(item?.title ?? 'Shop the Look', style: textStyle),
               onTap: () => pushNavigator(screen: const LvOutfitsScreen()),
-            );
-          }
-          if (has('branches')) {
-            return ListTile(
-              leading: nativeLeading(item, Icons.storefront_outlined),
-              title: Text(item?.title ?? 'Branches', style: textStyle),
-              onTap: () => pushNavigator(screen: const StoreLocatorScreen()),
             );
           }
           if (has('about')) {
@@ -480,7 +500,7 @@ class MenuBarState extends State<SideBarMenu> {
   }
 
   /// Same Icon Mode decision as [leadingFor], for the native pages below
-  /// (Contact, Policy, My Coupons, Shop the Look, Branches, About). Their
+  /// (Contact, Policy, My Coupons, Shop the Look, About). Their
   /// glyph is fixed by the page itself rather than read from `item.icon`, but
   /// Text-only / Image still has to be able to turn it off or replace it —
   /// otherwise picking "Text only" for one of these rows left the default
@@ -504,6 +524,106 @@ class MenuBarState extends State<SideBarMenu> {
     }
 
     return Icon(defaultIcon, size: 20, color: iconColor);
+  }
+
+  /// The side menu's "Contact Us" block: the label, then WhatsApp / Call us /
+  /// Email always on screen — no tap needed to reveal them. Shows the same
+  /// number and address [ContactScreen] does.
+  Widget buildContactUsGroup(GeneralSettingItem? item) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Row(
+            children: [
+              ?nativeLeading(item, Icons.headset_mic_rounded),
+              const SizedBox(width: 12),
+              Text(
+                item?.title ?? 'Contact Us',
+                style: textStyle.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+        _contactRow(
+          icon: Icons.chat_rounded,
+          iconBg: const Color(0xFF25D366),
+          title: 'WhatsApp',
+          value: ContactScreen.whatsappNumber,
+          url: 'https://wa.me/${ContactScreen.whatsappIntl}',
+        ),
+        _contactRow(
+          icon: Icons.call_rounded,
+          iconBg: Theme.of(context).primaryColor,
+          title: 'Call us',
+          value: ContactScreen.whatsappNumber,
+          url: 'tel:${ContactScreen.whatsappNumber}',
+        ),
+        _contactRow(
+          icon: Icons.mail_rounded,
+          iconBg: Theme.of(context).primaryColor,
+          title: 'Email',
+          value: ContactScreen.email,
+          url: 'mailto:${ContactScreen.email}',
+        ),
+      ],
+    );
+  }
+
+  /// One contact channel in the drawer. Deliberately lighter than the cards on
+  /// [ContactScreen]: a small rounded glyph and two lines of text, no border or
+  /// shadow, so three of them sit inside the menu without crowding it.
+  Widget _contactRow({
+    required IconData icon,
+    required Color iconBg,
+    required String title,
+    required String value,
+    required String url,
+  }) {
+    return InkWell(
+      onTap: () => _onTapOpenSocialUrl(url),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Icon(icon, color: Colors.white, size: 17),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: textStyle.copyWith(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textStyle.copyWith(
+                      fontSize: 11.5,
+                      color: textColor.withValueOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   /// A curated drawer category that has sub-categories beneath it.

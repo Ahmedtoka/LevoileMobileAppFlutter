@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../common/constants.dart';
 import '../../../../services/services.dart';
 import '../../../common/delete_account_mixin.dart';
-import '../mixins/branch_mixin.dart';
 import '../mixins/setting_normal_mixin.dart';
 import '../setting_builder_layout.dart';
 
@@ -18,7 +17,7 @@ class SettingLayoutStyle01Widget extends StatefulWidget {
 }
 
 class _SettingLayoutStyle01WidgetState extends State<SettingLayoutStyle01Widget>
-    with DeleteAccountMixin, SettingNormalMixin, BranchMixin {
+    with DeleteAccountMixin, SettingNormalMixin {
   @override
   DataSettingScreen get dataSettings => widget.dataSettings;
   @override
@@ -88,9 +87,6 @@ class _SettingLayoutStyle01WidgetState extends State<SettingLayoutStyle01Widget>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    /// Branch
-                    branchWidget,
-
                     Services().renderSettingScanPointWidget(cardStyle),
 
                     Services().renderRewardsSettingWidget(cardStyle),

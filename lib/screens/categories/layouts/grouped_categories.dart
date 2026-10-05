@@ -13,13 +13,12 @@ import '../../../widgets/common/refresh_scroll_physics.dart';
 /// aren't Shopify collections).
 ///
 /// `remapCategories` is a flat list where each entry names its own immediate
-/// parent (an adjacency list), so it can already express any depth — this
-/// widget only ever rendered ONE level of it (root sections + their direct
-/// children) and silently dropped anything past that. A grid can't nest
-/// sections inline past a level or two and stay usable, so instead: a child
-/// tile that itself has children pushes a new screen ([_CategorySubtree])
-/// showing THAT tile's own children, reusing the exact same grid — tapping
-/// through nests to whatever depth the dashboard tree actually has.
+/// parent (an adjacency list), so it can already express any depth. The top
+/// level of this screen shows only the root categories themselves as tiles
+/// (e.g. "Fashion Wear") — tapping one that has children pushes a new screen
+/// ([_CategorySubtree]) showing that tile's own children (e.g. "Everyday
+/// Wear", "Kimono"), reusing the exact same grid — tapping through nests to
+/// whatever depth the dashboard tree actually has.
 class GroupedCategories extends StatefulWidget {
   static const String type = 'grouped';
 
@@ -54,27 +53,16 @@ class _GroupedCategoriesState extends State<GroupedCategories> {
 
     final roots = remap.where((e) => _parentOf(e).isEmpty).toList();
 
-    final sections = <Widget>[];
-    for (final root in roots) {
+    // A root with no subcategories isn't necessarily empty — it can still be
+    // its own tappable collection. Only drop it if it's neither (a pure
+    // label group with nothing under it).
+    final tiles = roots.where((root) {
       final rootKey = _keyOf(root);
-      final children = remap.where((e) => _parentOf(e) == rootKey).toList();
-      // A root with no subcategories isn't necessarily empty — it can still
-      // be its own tappable collection. Only drop it if it's neither (a
-      // pure label group with nothing under it).
-      final tiles = children.isNotEmpty
-          ? children
-          : (_isRealCollection(rootKey) ? [root] : const <Map>[]);
-      if (tiles.isEmpty) continue;
+      final hasChildren = remap.any((e) => _parentOf(e) == rootKey);
+      return hasChildren || _isRealCollection(rootKey);
+    }).toList();
 
-      final title = root['name']?.toString() ?? '';
-      if (title.isNotEmpty) {
-        sections.add(_SectionHeading(title: title));
-      }
-
-      sections.add(_CategoryGrid(remap: remap, children: tiles));
-    }
-
-    if (sections.isEmpty) {
+    if (tiles.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -85,7 +73,11 @@ class _GroupedCategoriesState extends State<GroupedCategories> {
       child: ListView(
         controller: _controller,
         physics: const RefreshScrollPhysics(),
-        children: [...sections, const SizedBox(height: 24)],
+        children: [
+          const SizedBox(height: 8),
+          _CategoryGrid(remap: remap, children: tiles),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }
@@ -136,38 +128,9 @@ void _onTapChild(BuildContext context, List<Map> remap, Map child) {
   }
 }
 
-class _SectionHeading extends StatelessWidget {
-  const _SectionHeading({required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 18, 14, 8),
-      child: Row(
-        children: [
-          Container(
-            width: 4,
-            height: 18,
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// The grid of tiles for one parent's direct children — shared by the top
-/// level (one grid per root section) and by [_CategorySubtree] (one grid for
-/// whatever node the customer drilled into).
+/// level (one grid of root categories) and by [_CategorySubtree] (one grid
+/// for whatever node the customer drilled into).
 class _CategoryGrid extends StatelessWidget {
   const _CategoryGrid({required this.remap, required this.children});
 

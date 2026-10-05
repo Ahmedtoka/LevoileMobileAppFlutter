@@ -8,16 +8,18 @@ import 'package:url_launcher/url_launcher.dart';
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
 
+  // ---- Le Voile contact details ----
+  // Public so other places that show the same channels (e.g. the side menu's
+  // inline Contact Us rows) don't duplicate these values.
+  static const String whatsappNumber = '01050092630';
+  static const String whatsappIntl = '201050092630'; // wa.me format (EG +20)
+  static const String email = 'Customersupport@levoilestores.com';
+
   @override
   State<ContactScreen> createState() => _ContactScreenState();
 }
 
 class _ContactScreenState extends State<ContactScreen> {
-  // ---- Le Voile contact details ----
-  static const String _whatsappNumber = '01050092630';
-  static const String _whatsappIntl = '201050092630'; // wa.me format (EG +20)
-  static const String _email = 'Customersupport@levoilestores.com';
-
   final TextEditingController _messageCtrl = TextEditingController();
 
   @override
@@ -38,7 +40,7 @@ class _ContactScreenState extends State<ContactScreen> {
     final encoded = Uri.encodeComponent(
       text.isEmpty ? 'Hello Le Voile, I have an inquiry.' : text,
     );
-    _launch('https://wa.me/$_whatsappIntl?text=$encoded');
+    _launch('https://wa.me/${ContactScreen.whatsappIntl}?text=$encoded');
   }
 
   @override
@@ -90,29 +92,29 @@ class _ContactScreenState extends State<ContactScreen> {
           const SizedBox(height: 22),
 
           // Quick action cards
-          _ContactCard(
+          ContactCard(
             icon: Icons.chat_rounded,
             iconBg: const Color(0xFF25D366),
             title: 'WhatsApp',
-            subtitle: _whatsappNumber,
+            subtitle: ContactScreen.whatsappNumber,
             primary: primary,
-            onTap: () => _launch('https://wa.me/$_whatsappIntl'),
+            onTap: () => _launch('https://wa.me/${ContactScreen.whatsappIntl}'),
           ),
-          _ContactCard(
+          ContactCard(
             icon: Icons.call_rounded,
             iconBg: primary,
             title: 'Call us',
-            subtitle: _whatsappNumber,
+            subtitle: ContactScreen.whatsappNumber,
             primary: primary,
-            onTap: () => _launch('tel:$_whatsappNumber'),
+            onTap: () => _launch('tel:${ContactScreen.whatsappNumber}'),
           ),
-          _ContactCard(
+          ContactCard(
             icon: Icons.mail_rounded,
             iconBg: primary,
             title: 'Email',
-            subtitle: _email,
+            subtitle: ContactScreen.email,
             primary: primary,
-            onTap: () => _launch('mailto:$_email'),
+            onTap: () => _launch('mailto:${ContactScreen.email}'),
           ),
 
           const SizedBox(height: 24),
@@ -169,8 +171,11 @@ class _ContactScreenState extends State<ContactScreen> {
   }
 }
 
-class _ContactCard extends StatelessWidget {
-  const _ContactCard({
+/// One tappable contact-channel row (icon, name, value) — shared by
+/// [ContactScreen] and the side menu's inline Contact Us section.
+class ContactCard extends StatelessWidget {
+  const ContactCard({
+    super.key,
     required this.icon,
     required this.iconBg,
     required this.title,

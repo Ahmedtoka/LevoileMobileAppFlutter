@@ -10,9 +10,11 @@ description: Mobile commerce app by Flutter
 # on BOTH stores — it is the one field neither store lets you reuse.
 #   App Store Connect / TestFlight holds 1.6.2 (12), uploaded 17 Aug 2026.
 #   So +10 would have been rejected on upload, not at review.
+#   Play Console was already past 28, so this sits at 29.
 # Bumped past it with room to spare; check Play Console's versionCode before
 # the AAB too, and never re-add a literal version to project.pbxproj.
-version: 1.6.3+26
+# `android/local.properties` caches versionName/Code — keep it in step.
+version: 1.6.4+31
 
 environment:
   sdk: ">=3.10.0 <4.0.0"

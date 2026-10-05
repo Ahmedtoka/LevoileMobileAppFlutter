@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../common/tools.dart';
 import '../../common/tools/flash.dart';
-import '../../common/tools/price_tools.dart';
 import '../../models/app_model.dart';
 import '../../models/cart/cart_item_meta_data.dart';
 // ⚠️ Imported directly: models/index.dart exports cart_model.dart, which only
@@ -84,20 +84,15 @@ class LvOutfitsScreen extends StatelessWidget {
                   sliver: SliverGrid(
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.66,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, i) {
-                        final item = items[i];
-                        return _OutfitCard(
-                          config: item is Map ? item : const {},
-                        );
-                      },
-                      childCount: items.length,
-                    ),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.66,
+                        ),
+                    delegate: SliverChildBuilderDelegate((context, i) {
+                      final item = items[i];
+                      return _OutfitCard(config: item is Map ? item : const {});
+                    }, childCount: items.length),
                   ),
                 ),
               ],
@@ -121,12 +116,21 @@ class _OutfitCard extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (image.isNotEmpty)
-            Image.network(
-              image,
-              fit: BoxFit.cover,
-              // A lookbook photo that fails to load must not take the card —
-              // and its button — down with it.
-              errorBuilder: (_, _, _) => Container(color: Colors.grey.shade200),
+            GestureDetector(
+              // The lookbook photo, viewed full-screen — same gallery a
+              // regular product opens on its own image. The "Shop the Look"
+              // button below sits in its own Positioned on top of this, so
+              // it keeps getting its own taps untouched.
+              onTap: () =>
+                  context.openImageGallery(isDialog: false, images: [image]),
+              child: Image.network(
+                image,
+                fit: BoxFit.cover,
+                // A lookbook photo that fails to load must not take the card —
+                // and its button — down with it.
+                errorBuilder: (_, _, _) =>
+                    Container(color: Colors.grey.shade200),
+              ),
             )
           else
             Container(color: Colors.grey.shade200),
@@ -309,7 +313,8 @@ class _OutfitSheetState extends State<_OutfitSheet> {
           context,
           code: coupon,
           success: (_) {
-            couponNote = hadCoupon != null &&
+            couponNote =
+                hadCoupon != null &&
                     hadCoupon.toLowerCase() != coupon.toLowerCase()
                 ? ' The outfit offer replaced code $hadCoupon.'
                 : '';
@@ -327,20 +332,24 @@ class _OutfitSheetState extends State<_OutfitSheet> {
     Navigator.of(context).pop();
 
     if (added == 0) {
-      unawaited(FlashHelper.errorMessage(
-        context,
-        message: 'None of these pieces are available right now.',
-      ));
+      unawaited(
+        FlashHelper.errorMessage(
+          context,
+          message: 'None of these pieces are available right now.',
+        ),
+      );
       return;
     }
 
     final shortfall = refused + _missing;
-    unawaited(FlashHelper.message(
-      context,
-      message: shortfall > 0
-          ? '$added piece(s) added — $shortfall are unavailable.$couponNote'
-          : 'The full outfit is in your bag.$couponNote',
-    ));
+    unawaited(
+      FlashHelper.message(
+        context,
+        message: shortfall > 0
+            ? '$added piece(s) added — $shortfall are unavailable.$couponNote'
+            : 'The full outfit is in your bag.$couponNote',
+      ),
+    );
   }
 
   @override
@@ -374,9 +383,7 @@ class _OutfitSheetState extends State<_OutfitSheet> {
               ),
             ),
             if (_loading)
-              const Expanded(
-                child: Center(child: CircularProgressIndicator()),
-              )
+              const Expanded(child: Center(child: CircularProgressIndicator()))
             else
               Expanded(
                 child: ListView.separated(
@@ -513,71 +520,84 @@ class _OutfitSheetState extends State<_OutfitSheet> {
       product: piece.product,
     );
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: SizedBox(
-            width: 60,
-            height: 78,
-            child: image != null
-                ? Image.network(
-                    image,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) =>
-                        Container(color: Colors.grey.shade200),
-                  )
-                : Container(color: Colors.grey.shade200),
+    return InkWell(
+      // Tapping a piece opens its own product page — same as tapping any
+      // other product card in the app — so the customer can pick options,
+      // read the description, etc. before deciding whether to buy it, the
+      // way they would for a regular product.
+      onTap: () => NavigateTools.navigateToProductDetail(
+        context,
+        product: piece.product,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: SizedBox(
+              width: 60,
+              height: 78,
+              child: image != null
+                  ? Image.network(
+                      image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) =>
+                          Container(color: Colors.grey.shade200),
+                    )
+                  : Container(color: Colors.grey.shade200),
+            ),
           ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                (piece.product.name ?? '').toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              if (variantLabel.isNotEmpty) ...[
-                const SizedBox(height: 3),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  variantLabel,
-                  style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600),
-                ),
-              ],
-              const SizedBox(height: 6),
-              Text(
-                PriceTools.getCurrencyFormatted(
-                      piece.price,
-                      rates,
-                      currency: currency,
-                    ) ??
-                    '',
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              if (limit != null && limit <= 0) ...[
-                const SizedBox(height: 3),
-                Text(
-                  'Sold out',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Theme.of(context).colorScheme.error,
+                  (piece.product.name ?? '').toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
+                if (variantLabel.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    variantLabel,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 6),
+                Text(
+                  PriceTools.getCurrencyFormatted(
+                        piece.price,
+                        rates,
+                        currency: currency,
+                      ) ??
+                      '',
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (limit != null && limit <= 0) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    'Sold out',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

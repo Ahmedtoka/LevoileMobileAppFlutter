@@ -126,7 +126,20 @@ class Routes {
         );
 
       case RouteList.backdrop:
-        final arguments = settings.arguments;
+        // Le Voile: lets a bottom-tab bar entry (`layout: 'backdrop'`) open
+        // straight onto one collection's product grid — same screen
+        // `_openProducts` in the Categories tab and the drawer already push
+        // to, just reached directly instead of through a category tile. The
+        // dashboard sets `cateId`/`cateName` as plain top-level keys on the
+        // tab's JSON; `TabBarMenuConfig.jsonData` is that whole raw map.
+        final tabConfig = settings.arguments;
+        final arguments = tabConfig is TabBarMenuConfig
+            ? BackDropArguments(
+                cateId: tabConfig.jsonData['cateId']?.toString(),
+                cateName: tabConfig.jsonData['cateName']?.toString(),
+                allowFilterMultipleCategory: false,
+              )
+            : settings.arguments;
         if (arguments is BackDropArguments) {
           final config = arguments.config;
 

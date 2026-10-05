@@ -21,6 +21,7 @@ import '../../custom/about_screen.dart';
 import '../../custom/my_coupons_screen.dart';
 import '../../custom/policy_screen.dart';
 import '../../custom/privacy_screen.dart';
+import '../../custom/store_locator_screen.dart';
 import '../../my_rating/index.dart';
 import '../../users/user_point_screen.dart';
 import '../layouts/mixins/setting_action_mixin.dart';
@@ -413,6 +414,15 @@ class _DynamicSettingItemWidgetState extends State<DynamicSettingItemWidget>
           title = S.of(context).aboutUs;
           onTap = () => Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const AboutScreen()),
+          );
+          break;
+        }
+      case 'lvLocation':
+        {
+          icon = Icons.storefront_outlined;
+          title = 'Our Location';
+          onTap = () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const StoreLocatorScreen()),
           );
           break;
         }

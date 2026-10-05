@@ -325,8 +325,8 @@
       "colorActiveIcon": "ff9e197e",
       "iconSize": 22.968195913186673,
       "indicatorStyle": "material",
-      "showFloatingClip": true,
-      "showFloating": true,
+      "showFloatingClip": false,
+      "showFloating": false,
       "enableOnTop": false,
       "enableDivider": true,
       "radiusTopLeft": 0.0,
@@ -358,7 +358,7 @@
         "paintingStyle": "fill"
       },
       "TabBarFloating": {
-        "position": 2,
+        "position": 0,
         "radius": 50.0,
         "color": "ff9e197e",
         "location": "centerDocked",
@@ -384,15 +384,12 @@
   },
   "TabBar": [
     {
-      "layout": "storeLocator",
-      "title": "Branches",
-      "icon": "storefront",
-      "fontFamily": "MaterialIcons",
-      "pos": 300,
-      "defaultTab": false,
-      "fullscreen": false,
-      "showOriginalColor": false,
-      "key": "branch001"
+      "layout": "home",
+      "icon": "assets/icons/tabs/icon-home.png",
+      "pos": 100,
+      "key": "XIwuxiEVoU",
+      "defaultTab": true,
+      "label": "Home"
     },
     {
       "layout": "category",
@@ -400,21 +397,27 @@
       "icon": "assets/icons/tabs/icon-category.png",
       "pos": 200,
       "key": "DGkJPkxbOc",
-      "defaultTab": false
+      "defaultTab": false,
+      "label": "Categories"
     },
     {
-      "layout": "home",
-      "icon": "assets/icons/tabs/icon-home.png",
-      "pos": 100,
-      "key": "XIwuxiEVoU",
-      "defaultTab": true
+      "layout": "backdrop",
+      "cateId": "gid://shopify/Collection/481128939812",
+      "cateName": "Sale",
+      "label": "Sale",
+      "icon": "local_offer",
+      "fontFamily": "MaterialIcons",
+      "pos": 150,
+      "key": "lvSaleTab",
+      "defaultTab": false
     },
     {
       "layout": "cart",
       "icon": "assets/icons/tabs/icon-cart2.png",
       "pos": 400,
       "key": "YoKaScWZpp",
-      "defaultTab": false
+      "defaultTab": false,
+      "label": "Cart"
     },
     {
       "key": "JspbgQfIWs",
@@ -432,6 +435,7 @@
         "lvReturn",
         "lvPrivacy",
         "lvAbout",
+        "lvLocation",
         "title-prefs",
         "notifications",
         "rating"
@@ -476,7 +480,8 @@
       },
       "showBackground": false,
       "styleItem": "flatShadow",
-      "background": null
+      "background": null,
+      "label": "Account"
     }
   ],
   "searchSuggestion": [],

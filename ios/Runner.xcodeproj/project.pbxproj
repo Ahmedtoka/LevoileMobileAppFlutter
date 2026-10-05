@@ -239,7 +239,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		086B1F2C2E9770C800755740 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		086B1F2C2E9770C800755740 /* Exceptions for "OneSignalNotificationServiceExtension" folder in "OneSignalNotificationServiceExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -249,7 +249,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		086B1F252E9770C800755740 /* OneSignalNotificationServiceExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (086B1F2C2E9770C800755740 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = OneSignalNotificationServiceExtension; sourceTree = "<group>"; };
+		086B1F252E9770C800755740 /* OneSignalNotificationServiceExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				086B1F2C2E9770C800755740 /* Exceptions for "OneSignalNotificationServiceExtension" folder in "OneSignalNotificationServiceExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = OneSignalNotificationServiceExtension;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -671,12 +682,8 @@
 			);
 			inputFileListPaths = (
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -712,12 +719,8 @@
 			);
 			inputFileListPaths = (
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1105,11 +1108,11 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = Q8596AFPV8;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.6.8;
-				FLUTTER_BUILD_NUMBER = 16;
+				FLUTTER_BUILD_NAME = 1.6.10;
+				FLUTTER_BUILD_NUMBER = 2;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
@@ -1126,7 +1129,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 1.6.8;
+				MARKETING_VERSION = 1.6.10;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -1378,11 +1381,11 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = Q8596AFPV8;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.6.8;
-				FLUTTER_BUILD_NUMBER = 16;
+				FLUTTER_BUILD_NAME = 1.6.10;
+				FLUTTER_BUILD_NUMBER = 2;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
@@ -1399,7 +1402,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 1.6.8;
+				MARKETING_VERSION = 1.6.10;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -1424,11 +1427,11 @@
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = Q8596AFPV8;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.6.8;
-				FLUTTER_BUILD_NUMBER = 16;
+				FLUTTER_BUILD_NAME = 1.6.10;
+				FLUTTER_BUILD_NUMBER = 2;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
@@ -1445,7 +1448,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
-				MARKETING_VERSION = 1.6.8;
+				MARKETING_VERSION = 1.6.10;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

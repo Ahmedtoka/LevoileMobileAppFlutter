@@ -3,7 +3,6 @@ import 'package:flux_localization/flux_localization.dart';
 
 import '../../../../services/services.dart';
 import '../../../common/delete_account_mixin.dart';
-import '../mixins/branch_mixin.dart';
 import '../mixins/setting_normal_mixin.dart';
 import '../setting_builder_layout.dart';
 
@@ -18,7 +17,7 @@ class SettingLayoutNormalWidget extends StatefulWidget {
 }
 
 class _SettingLayoutNormalWidgetState extends State<SettingLayoutNormalWidget>
-    with DeleteAccountMixin, SettingNormalMixin, BranchMixin {
+    with DeleteAccountMixin, SettingNormalMixin {
   @override
   DataSettingScreen get dataSettings => widget.dataSettings;
 
@@ -65,9 +64,6 @@ class _SettingLayoutNormalWidgetState extends State<SettingLayoutNormalWidget>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  /// Branch
-                  branchWidget,
-
                   Services().renderSettingScanPointWidget(cardStyle),
 
                   Services().renderRewardsSettingWidget(cardStyle),
